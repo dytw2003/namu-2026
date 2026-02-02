@@ -1,13 +1,14 @@
 import { useState } from 'react'
 import SensorComponent from './Components/sensorCompoonent/sensorComponent'
+import SensorPage from './pages/SensorPage/SensorPage'
 
 function App() {
-  const [count, setCount] = useState(0)
+ 
 
   return (
     <>
-      <SensorComponent/>
-      <SensorComponent/>
+      <SensorPage/>
+      
     </>
   )
 }

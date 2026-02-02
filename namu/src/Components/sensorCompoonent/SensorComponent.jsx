@@ -22,7 +22,7 @@ function SensorComponent() {
                 <div className="sensorc-inner-details">
                     <div className="sensorc-inner-title">온도</div>
                     <div className="sensorc-value-units">
-                        <div className="sensorc-inner-sensor-value">12</div>
+                        <div className="sensorc-inner-sensor-value" id='temp_s1_1'>12</div>
                         <div className="sensorc-inner-sensor-unit">°C</div>
                     </div>
                 </div>
@@ -36,7 +36,7 @@ function SensorComponent() {
                 <div className="sensorc-inner-details">
                     <div className="sensorc-inner-title">습도</div>
                     <div className="sensorc-value-units">
-                        <div className="sensorc-inner-sensor-value">12</div>
+                        <div className="sensorc-inner-sensor-value" id='humi_s2_1'>12</div>
                         <div className="sensorc-inner-sensor-unit">%</div>
                     </div>
                 </div>
@@ -49,7 +49,7 @@ function SensorComponent() {
                 <div className="sensorc-inner-details">
                     <div className="sensorc-inner-title">EC</div>
                     <div className="sensorc-value-units">
-                        <div className="sensorc-inner-sensor-value">12</div>
+                        <div className="sensorc-inner-sensor-value" id='ec_s3_1'>12</div>
                         <div className="sensorc-inner-sensor-unit">ds/m</div>
                     </div>
                 </div>
@@ -62,7 +62,7 @@ function SensorComponent() {
                 <div className="sensorc-inner-details">
                     <div className="sensorc-inner-title">PH</div>
                     <div className="sensorc-value-units">
-                        <div className="sensorc-inner-sensor-value">12</div>
+                        <div className="sensorc-inner-sensor-value" id='ph_s4_1'>12</div>
                         <div className="sensorc-inner-sensor-unit">μmol/m²/s </div>
                     </div>
                 </div>
