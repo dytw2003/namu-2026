@@ -1,0 +1,65 @@
+body {
+    padding: 0px;
+    margin: 0px;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+.main-container-sensorc {
+    background-color: #32456A;
+    display: flex;
+    align-items: center;
+}
+
+.sensorc-inner-type1 {
+    display: flex;
+    flex-direction: row;
+}
+
+.sensorc-inner-image {
+    height: 2.75rem;
+    width: 2.75rem;
+}
+
+
+.sensorc-inner-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.sensorc-inner-title {
+    color: #FFFFFF66;
+}
+
+
+.sensorc-value-units {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.15rem;
+
+}
+
+.sensorc-inner-sensor-value {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 1.1rem;
+    line-height: 1.175rem;
+    letter-spacing: 0;
+    color: #FFFFFFE5
+}
+
+.sensorc-inner-sensor-unit {
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8rem;
+    line-height: 1rem;
+    letter-spacing: 0;
+    color: #FFFFFFE5
+}
+
+
