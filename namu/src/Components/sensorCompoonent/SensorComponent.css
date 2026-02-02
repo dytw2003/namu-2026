@@ -18,9 +18,9 @@ html, body {
 
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.2rem;
 
-  padding: 0.75rem 1rem;
+  padding: 0.75rem 0.2rem;
 }
 
 /* Left title */
@@ -32,7 +32,7 @@ html, body {
   line-height: 1.125rem;
   white-space: nowrap;
   flex: 0 0 auto;
-  min-width: 72px;
+  
 }
 
 /* =========================================
@@ -40,21 +40,43 @@ html, body {
    - single row
    - never go to next line
    ========================================= */
+
+
+/* 
 .sensorc-inner-div {
   flex: 1;
   min-width: 0;
 
   display: grid;
-  grid-auto-flow: column;          /* ✅ force single row */
-  grid-auto-columns: minmax(140px, 1fr); /* item width */
-  gap: 0.75rem 1rem;
+  grid-auto-flow: column;
+
+  
+  grid-auto-columns: minmax(90px, 1fr);
+
+  
+  column-gap: 0.5rem;
+  row-gap: 0;
+
   align-items: center;
 
-  overflow-x: auto;                /* ✅ if screen is not enough, scroll instead of wrap */
+  overflow-x: auto;    
   overflow-y: hidden;
   -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;           /* hide scrollbar (firefox) */
+  scrollbar-width: none;
+} */
+
+
+/* ✅ Default = wrap (mobile + tablet safe) */
+.sensorc-inner-div {
+  flex: 1;
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.75rem 1rem;
+  align-items: center;
 }
+
 
 .sensorc-inner-div::-webkit-scrollbar {
   display: none;                   /* hide scrollbar (chrome) */
@@ -134,7 +156,7 @@ html, body {
   .main-container-sensorc {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.2rem;
   }
 
   .sensorc-inner-div {
@@ -153,3 +175,38 @@ html, body {
     min-width: 0;           /* ✅ remove fixed min-width on mobile */
   }
 }
+
+
+@media (min-width: 701px) and (max-width: 1200px) {
+  .sensorc-inner-div {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.5rem 0.75rem;
+    
+  }
+
+  
+
+ 
+}
+
+
+@media (min-width: 1201px) {
+  .sensorc-inner-div {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(90px, 1fr);
+    column-gap: 0.5rem;
+    row-gap: 0;
+    align-items: center;
+
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .sensorc-inner-div::-webkit-scrollbar {
+    display: none;
+  }
+}
+

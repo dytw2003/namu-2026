@@ -1,0 +1,21 @@
+.sensors-grid {
+  display: grid;
+  grid-template-columns: 1fr; /* ✅ mobile default */
+  gap: 0.22rem;
+  padding: 0.1rem;
+  background-color: #423E8D;
+}
+
+/* ✅ tablet: 2 columns */
+@media (min-width: 701px) and (max-width: 1200px) {
+  .sensors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ✅ desktop: 2 columns */
+@media (min-width: 1021px) {
+  .sensors-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
