@@ -1,65 +1,155 @@
-body {
-    padding: 0px;
-    margin: 0px;
+/* Reset */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
 }
 
 *,
 *::before,
 *::after {
-    box-sizing: border-box;
+  box-sizing: border-box;
 }
 
+/* Main container */
 .main-container-sensorc {
-    background-color: #32456A;
-    display: flex;
-    align-items: center;
+  width: 100%;
+  background-color: #32456A;
+
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+
+  padding: 0.75rem 1rem;
 }
 
+/* Left title */
+.div-main-sensor-title {
+  color: #FFFFFFE5;
+  font-family: "Pretendard", sans-serif;
+  font-weight: 500;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  white-space: nowrap;
+  flex: 0 0 auto;
+  min-width: 72px;
+}
+
+/* =========================================
+   ✅ TABLET + DESKTOP (701px and above)
+   - single row
+   - never go to next line
+   ========================================= */
+.sensorc-inner-div {
+  flex: 1;
+  min-width: 0;
+
+  display: grid;
+  grid-auto-flow: column;          /* ✅ force single row */
+  grid-auto-columns: minmax(140px, 1fr); /* item width */
+  gap: 0.75rem 1rem;
+  align-items: center;
+
+  overflow-x: auto;                /* ✅ if screen is not enough, scroll instead of wrap */
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;           /* hide scrollbar (firefox) */
+}
+
+.sensorc-inner-div::-webkit-scrollbar {
+  display: none;                   /* hide scrollbar (chrome) */
+}
+
+/* Sensor item */
 .sensorc-inner-type1 {
-    display: flex;
-    flex-direction: row;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 0.6rem;
+  min-width: 0;
 }
 
+/* icon */
 .sensorc-inner-image {
-    height: 2.75rem;
-    width: 2.75rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex: 0 0 2.5rem;
 }
 
+.sensorc-inner-image img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: contain;
+}
 
+/* details */
 .sensorc-inner-details {
-    display: flex;
-    flex-direction: column;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.15rem;
+  min-width: 0;
 }
 
 .sensorc-inner-title {
-    color: #FFFFFF66;
+  color: #FFFFFF66;
+  font-family: "Pretendard", sans-serif;
+  font-weight: 500;
+  font-size: 0.75rem;
+  line-height: 1rem;
 }
 
-
 .sensorc-value-units {
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    gap: 0.15rem;
-
+  display: flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  min-width: 0;
 }
 
 .sensorc-inner-sensor-value {
-    font-family: "Pretendard", sans-serif;
-    font-weight: 400;
-    font-size: 1.1rem;
-    line-height: 1.175rem;
-    letter-spacing: 0;
-    color: #FFFFFFE5
+  font-family: "Pretendard", sans-serif;
+  font-weight: 600;
+  font-size: 1.05rem;
+  line-height: 1.2rem;
+  color: #FFFFFFE5;
+  white-space: nowrap;
 }
 
 .sensorc-inner-sensor-unit {
-    font-family: "Pretendard", sans-serif;
-    font-weight: 400;
-    font-size: 0.8rem;
-    line-height: 1rem;
-    letter-spacing: 0;
-    color: #FFFFFFE5
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  line-height: 1rem;
+  color: #FFFFFFE5;
+  white-space: nowrap;
 }
 
+/* =========================================
+   ✅ MOBILE (320px ~ 700px)
+   - wrap to next line
+   ========================================= */
+@media (max-width: 700px) {
+  .main-container-sensorc {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
 
+  .sensorc-inner-div {
+    width: 100%;
+
+    /* ✅ allow wrapping */
+    overflow: visible;
+    grid-auto-flow: row;
+    grid-auto-columns: initial;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  }
+
+    .div-main-sensor-title {
+    width: 100%;            /* ✅ make it full width */
+    text-align: center;     /* ✅ center the text */
+    min-width: 0;           /* ✅ remove fixed min-width on mobile */
+  }
+}
