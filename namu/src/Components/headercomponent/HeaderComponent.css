@@ -1,12 +1,19 @@
 .header {
   height: 5rem;
   width: 100%;
-  background: #262c39;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding-left: 1.25rem;
   padding-right: 1.25rem;
+}
+
+.header.dark {
+  background: #262c39;
+}
+
+.header.light {
+  background: green;
 }
 
 .header-brand {
@@ -248,6 +255,9 @@
   width: 1rem;
   height: 1rem;
 }
+
+.light .logout-ico { color: #111827; }
+.dark  .logout-ico { color: #ffffff; }
 
 
 .logout-text {

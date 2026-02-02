@@ -12,7 +12,7 @@ function HeaderComoponent() {
   const [theme, setTheme] = useState("dark");
 
   return (
-    <div className="header">
+    <div className={`header ${theme}`}>
       {/* Left */}
 
       <div className="header-brand">
@@ -57,7 +57,7 @@ function HeaderComoponent() {
 
         <button className="header-logoutBtn" type="button">
           <span className="logout-text">로그아웃</span>
-          <FiLogOut className="logout-ico" aria-hidden="true" />
+       <FiLogOut className={`logout-ico ${theme}`} aria-hidden="true" />
         </button>
       </div>
     </div>
