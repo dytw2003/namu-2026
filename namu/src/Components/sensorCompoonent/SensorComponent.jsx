@@ -1,10 +1,10 @@
 import React from "react";
 import "./SensorComponent.css";
 
-import temp from "../../assets/namu-temp-dark.svg";
-import humi from "../../assets/namu-humi-dark.svg";
-import ecIcon from "../../assets/namu-ec-dark.svg";
-import phIcon from "../../assets/namu-ph-dark.svg";
+import tempIconDark from "../../assets/namu-temp-dark.svg";
+import humiIconDark from "../../assets/namu-humi-dark.svg";
+import ecIconDark from "../../assets/namu-ec-dark.svg";
+import phIconDark from "../../assets/namu-ph-dark.svg";
 
 function SensorComponent({ sensorNo = 1, title }) {
   // sensorNo: 1,2,3...
@@ -20,7 +20,7 @@ function SensorComponent({ sensorNo = 1, title }) {
       <div className="sensorc-inner-div">
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
-            <img src={temp} alt="temp" />
+            <img src={tempIconDark} alt="temp" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">온도</div>
@@ -35,7 +35,7 @@ function SensorComponent({ sensorNo = 1, title }) {
 
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
-            <img src={humi} alt="humidity" />
+            <img src={humiIconDark} alt="humidity" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">습도</div>
@@ -50,7 +50,7 @@ function SensorComponent({ sensorNo = 1, title }) {
 
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
-            <img src={ecIcon} alt="ec" />
+            <img src={ecIconDark} alt="ec" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">EC</div>
@@ -63,9 +63,9 @@ function SensorComponent({ sensorNo = 1, title }) {
           </div>
         </div>
 
-        <div className="sensorc-inner-type1">
+         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
-            <img src={phIcon} alt="ph" />
+            <img src={phIconDark} alt="ph" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">PH</div>
@@ -78,9 +78,11 @@ function SensorComponent({ sensorNo = 1, title }) {
           </div>
         </div>
 
+        
+
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
-            <img src={temp} alt="water" />
+            <img src={tempIconDark} alt="water" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">abc</div>
@@ -92,6 +94,9 @@ function SensorComponent({ sensorNo = 1, title }) {
             </div>
           </div>
         </div>
+
+
+       
       </div>
     </div>
   );
