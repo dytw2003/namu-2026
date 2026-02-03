@@ -9,8 +9,11 @@ import logoIconLight from "../../assets/logo-light.svg";
 import { NavLink } from "react-router-dom";
 import "./HeaderComponent.css";
 
+
+import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
+
 function HeaderComoponent() {
-  const [theme, setTheme] = useState("dark");
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <div className={`header ${theme}`}>
@@ -41,7 +44,7 @@ function HeaderComoponent() {
         <button
           className={`header-modeBtn ${theme === "dark" ? "is-dark" : "is-light"}`}
           type="button"
-          onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+          onClick={toggleTheme}
           aria-pressed={theme === "dark"}
           aria-label={
             theme === "dark" ? "Switch to light mode" : "Switch to dark mode"

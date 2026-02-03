@@ -14,26 +14,42 @@ html, body {
 /* Main container */
 .main-container-sensorc {
   width: 100%;
-  background-color: #32456A;
-
   display: flex;
   align-items: center;
   gap: 0.2rem;
-
   padding: 0.75rem 0.2rem;
 }
 
+.main-container-sensorc.dark{
+ background-color: #32456A;
+}
+
+.main-container-sensorc.light{
+ background-color: #FFFFFF;
+}
+
+
+
 /* Left title */
 .div-main-sensor-title {
-  color: #FFFFFFE5;
   font-family: "Pretendard", sans-serif;
   font-weight: 500;
-  font-size: 0.875rem;
+  font-size: 1.2rem;
   line-height: 1.125rem;
   white-space: nowrap;
   flex: 0 0 auto;
   
 }
+
+.main-container-sensorc.dark .div-main-sensor-title{
+ color: #FFFFFFE5;
+}
+
+
+.main-container-sensorc.light .div-main-sensor-title{
+ color: #1C625D;
+}
+
 
 /* =========================================
    ✅ TABLET + DESKTOP (701px and above)
@@ -119,8 +135,16 @@ html, body {
   color: #FFFFFF66;
   font-family: "Pretendard", sans-serif;
   font-weight: 500;
-  font-size: 0.75rem;
+  font-size: 0.9rem;
   line-height: 1rem;
+}
+
+.main-container-sensorc.dark .sensorc-inner-title{
+ color: #FFFFFF66;
+}
+
+.main-container-sensorc.light .sensorc-inner-title{
+ color: #00000080;
 }
 
 .sensorc-value-units {
@@ -135,17 +159,32 @@ html, body {
   font-weight: 600;
   font-size: 1.05rem;
   line-height: 1.2rem;
-  color: #FFFFFFE5;
   white-space: nowrap;
 }
+
+.main-container-sensorc.dark .sensorc-inner-sensor-value{
+ color: #FFFFFFE5;
+}
+
+.main-container-sensorc.light .sensorc-inner-sensor-value{
+ color:#000000;
+} 
+
 
 .sensorc-inner-sensor-unit {
   font-family: "Pretendard", sans-serif;
   font-weight: 400;
   font-size: 0.9rem;
   line-height: 1rem;
-  color: #FFFFFFE5;
   white-space: nowrap;
+}
+
+.main-container-sensorc.dark .sensorc-inner-sensor-unit{
+color: #FFFFFFE5;
+}
+
+.main-container-sensorc.light .sensorc-inner-sensor-unit{
+color: #000000E5;
 }
 
 /* =========================================

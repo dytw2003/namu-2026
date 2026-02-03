@@ -3,7 +3,14 @@
   grid-template-columns: 1fr; /* ✅ mobile default */
   gap: 0.22rem;
   padding: 0.1rem;
-  background-color: #423E8D;
+}
+
+.sensors-grid.dark {
+  background-color: #222735;
+}
+
+.sensors-grid.light {
+  background-color: #F7F4E8 ;
 }
 
 /* ✅ tablet: 2 columns */

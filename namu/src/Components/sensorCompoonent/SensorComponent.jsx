@@ -6,15 +6,18 @@ import humiIconDark from "../../assets/namu-humi-dark.svg";
 import ecIconDark from "../../assets/namu-ec-dark.svg";
 import phIconDark from "../../assets/namu-ph-dark.svg";
 
-function SensorComponent({ sensorNo = 1, title }) {
-  // sensorNo: 1,2,3...
-  // index: if you ever need _1 part (temp_s1_1). Keep it 1 for now.
+import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 
-  const sid = `s${sensorNo}`; // e.g. s1_1, s2_1
+function SensorComponent({ sensorNo = 1, title }) {
+  const sid = `s${sensorNo}`; 
   const sensorTitle = title ?? `sensor ${sensorNo}`;
 
+
+  // ===theme ===========
+  const { theme } = useTheme();
+
   return (
-    <div className="main-container-sensorc">
+    <div className={`main-container-sensorc ${theme}`}>
       <div className="div-main-sensor-title">{sensorTitle}</div>
 
       <div className="sensorc-inner-div">
