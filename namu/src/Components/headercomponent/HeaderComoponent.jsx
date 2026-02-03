@@ -4,6 +4,7 @@ import { useState } from "react";
 import { FiSun, FiMoon, FiLogOut } from "react-icons/fi";
 
 import logoIconDark from "../../assets/adas-logo-dark.svg";
+import logoIconLight from "../../assets/logo-light.svg";
 
 import { NavLink } from "react-router-dom";
 import "./HeaderComponent.css";
@@ -18,7 +19,7 @@ function HeaderComoponent() {
       <div className="header-brand">
         <div className="header-logo-outer">
           <div className="header-logo">
-            <img src={logoIconDark} alt="logo" />
+            <img src={theme === "dark" ? logoIconDark : logoIconLight } alt="logo" />
           </div>
         </div>
         <div className="header-farmName">아다스주식회사</div>

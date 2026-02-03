@@ -13,23 +13,19 @@
 }
 
 .header.light {
-  background: green;
+  background: #FFFDF4;
 }
 
 .header-brand {
   display: flex;
   align-items: baseline;
-  /* ✅ baseline alignment */
   gap: 1rem;
-  /* 10px -> rem */
 }
 
 .header-logo {
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* remove fixed height if possible */
   height: auto;
   width: 5.5rem;
 }
@@ -41,7 +37,6 @@
 }
 
 .header-farmName {
-  color: #CDD2E3;
   font-family: "Pretendard", sans-serif;
   font-weight: 500;
   font-size: 1.1rem;
@@ -50,6 +45,14 @@
 
   /* ✅ remove flex here */
   display: block;
+}
+
+.header.dark .header-farmName{
+color: #CDD2E3;
+} 
+
+.header.light .header-farmName{
+color: #292825;
 }
 
 
@@ -67,9 +70,16 @@
   align-items: center;
 }
 
+.header.dark .nav-item-home{
+  color: #CDD2E3;
+}
+
+.header.light .nav-item-home{
+  color: #292825;
+}
+
 
 .nav-item-graph {
-  color: #CDD2E3;
   width: 5rem;
   height: 1.25rem;
   font-family: "Pretendard";
@@ -80,6 +90,15 @@
   display: inline-flex;
   align-items: center;
 }
+
+.header.dark .nav-item-graph{
+  color: #CDD2E3;
+}
+
+.header.light .nav-item-graph{
+  color: #292825;
+}
+
 
 .header-nav {
   display: flex;
@@ -97,8 +116,17 @@
   min-height: 2.25rem;
   padding: 0.5rem 1.375rem;
   border-radius: 1.25rem;
+
+}
+
+.header.dark .nav-item-home[aria-current="page"] {
   background: #3EC696;
   color: #222735;
+}
+
+.header.light .nav-item-home[aria-current="page"] {
+  background: #1C625D;
+  color: #FFFDF4;
 }
 
 .nav-item-graph[aria-current="page"] {
@@ -111,6 +139,16 @@
   background: #3EC696;
   color: #222735;
 
+}
+
+.header.dark .nav-item-graph[aria-current="page"] {
+  background: #3EC696;
+  color: #222735;
+}
+
+.header.light .nav-item-graph[aria-current="page"] {
+  background: #1C625D;
+  color: #FFFDF4;
 }
 
 
@@ -256,12 +294,11 @@
   height: 1rem;
 }
 
-.light .logout-ico { color: #111827; }
-.dark  .logout-ico { color: #ffffff; }
+.light .logout-ico { color: #292825; }
+.dark  .logout-ico { color: #CDD2E3; }
 
 
 .logout-text {
-  color: #CDD2E380;
   width: 4rem;
   height: 1.125rem;
   font-size: 1rem;
@@ -272,3 +309,11 @@
   font-family: "Pretendard", sans-serif;
   white-space: nowarp;
 }
+
+.header.dark .logout-text{
+  color: #CDD2E3;
+}
+
+.header.light .logout-text{
+  color: #292825;
+} 
