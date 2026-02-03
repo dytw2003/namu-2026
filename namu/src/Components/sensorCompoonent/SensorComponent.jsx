@@ -76,7 +76,7 @@ function SensorComponent({ sensorNo = 1, title }) {
               <div className="sensorc-inner-sensor-value" id={`ph_${sid}`}>
                 12
               </div>
-              <div className="sensorc-inner-sensor-unit">μmol/m²/s</div>
+              <div className="sensorc-inner-sensor-unit">pH</div>
             </div>
           </div>
         </div>
