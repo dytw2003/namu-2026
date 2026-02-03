@@ -8,10 +8,14 @@ import phIconDark from "../../assets/namu-ph-dark.svg";
 
 import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 
-function SensorComponent({ sensorNo = 1, title }) {
-  const sid = `s${sensorNo}`; 
+function SensorComponent({ sensorNo = 1, title, values = {} }) {
+  const sid = `s${sensorNo}`;
+  const tempId = `temp_${sid}`;
+  const humiId = `humi_${sid}`;
+  const ecId = `ec_${sid}`;
+  const phId = `ph_${sid}`;
+  const waterId = `pt_${sid}`;
   const sensorTitle = title ?? `sensor ${sensorNo}`;
-
 
   // ===theme ===========
   const { theme } = useTheme();
@@ -28,8 +32,8 @@ function SensorComponent({ sensorNo = 1, title }) {
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">온도</div>
             <div className="sensorc-value-units">
-              <div className="sensorc-inner-sensor-value" id={`temp_${sid}`}>
-                12
+              <div className="sensorc-inner-sensor-value" id={tempId}>
+                {values[tempId] ?? "__"}
               </div>
               <div className="sensorc-inner-sensor-unit">°C</div>
             </div>
@@ -43,8 +47,8 @@ function SensorComponent({ sensorNo = 1, title }) {
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">습도</div>
             <div className="sensorc-value-units">
-              <div className="sensorc-inner-sensor-value" id={`humi_${sid}`}>
-                12
+              <div className="sensorc-inner-sensor-value" id = {humiId}>
+                {values[humiId] ?? "__"}
               </div>
               <div className="sensorc-inner-sensor-unit">%</div>
             </div>
@@ -58,30 +62,28 @@ function SensorComponent({ sensorNo = 1, title }) {
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">EC</div>
             <div className="sensorc-value-units">
-              <div className="sensorc-inner-sensor-value" id={`ec_${sid}`}>
-                12
+              <div className="sensorc-inner-sensor-value" id={ecId}>
+                {values[ecId] ?? "__"}
               </div>
               <div className="sensorc-inner-sensor-unit">ds/m</div>
             </div>
           </div>
         </div>
 
-         <div className="sensorc-inner-type1">
+        <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
             <img src={phIconDark} alt="ph" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">PH</div>
             <div className="sensorc-value-units">
-              <div className="sensorc-inner-sensor-value" id={`ph_${sid}`}>
-                12
+              <div className="sensorc-inner-sensor-value" id={ phId }>
+                 {values[phId] ?? "__"}
               </div>
               <div className="sensorc-inner-sensor-unit">pH</div>
             </div>
           </div>
         </div>
-
-        
 
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
@@ -90,16 +92,13 @@ function SensorComponent({ sensorNo = 1, title }) {
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">abc</div>
             <div className="sensorc-value-units">
-              <div className="sensorc-inner-sensor-value" id={`water_${sid}`}>
-                12
+              <div className="sensorc-inner-sensor-value" id={waterId}>
+               {values[waterId] ?? "__"}
               </div>
               <div className="sensorc-inner-sensor-unit">%</div>
             </div>
           </div>
         </div>
-
-
-       
       </div>
     </div>
   );

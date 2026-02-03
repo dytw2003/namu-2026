@@ -24,5 +24,7 @@
 @media (min-width: 1021px) {
   .sensors-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.7rem;   
+    padding: 1rem;
   }
 }

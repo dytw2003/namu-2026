@@ -16,8 +16,26 @@ html, body {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 0.2rem;
-  padding: 0.75rem 0.2rem;
+  gap: 1rem;
+  padding: 0.75rem 0.5rem;
+
+  border: 2px solid transparent; /* invisible border (no border look) */
+  transition: border-color 200ms ease, transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+ 
+}
+
+.main-container-sensorc::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+
+  border: 2px solid #3EC696; /* border color */
+  pointer-events: none;
+
+  /* hidden at start (only a tiny point visible) */
+  clip-path: polygon(0 0, 0 0, 0 0, 0 0);
+  transition: clip-path 320ms ease;
 }
 
 .main-container-sensorc.dark{
@@ -51,46 +69,19 @@ html, body {
 }
 
 
-/* =========================================
-   ✅ TABLET + DESKTOP (701px and above)
-   - single row
-   - never go to next line
-   ========================================= */
-
-
-/* 
-.sensorc-inner-div {
-  flex: 1;
-  min-width: 0;
-
-  display: grid;
-  grid-auto-flow: column;
-
-  
-  grid-auto-columns: minmax(90px, 1fr);
-
-  
-  column-gap: 0.5rem;
-  row-gap: 0;
-
-  align-items: center;
-
-  overflow-x: auto;    
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-} */
-
 
 /* ✅ Default = wrap (mobile + tablet safe) */
 .sensorc-inner-div {
   flex: 1;
   min-width: 0;
+  width:100%;
 
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
   gap: 0.75rem 1rem;
   align-items: center;
+  /* background-color: red; */
+
 }
 
 
@@ -137,6 +128,8 @@ html, body {
   font-weight: 500;
   font-size: 0.9rem;
   line-height: 1rem;
+  white-space: nowarp;
+  width: max-content;
 }
 
 .main-container-sensorc.dark .sensorc-inner-title{
@@ -271,4 +264,42 @@ color: #000000E5;
     display: none;
   }
 }
+
+
+
+@media (hover: hover) and (pointer: fine) {
+  .main-container-sensorc:hover::before {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .main-container-sensorc:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1.25rem rgba(0, 0, 0, 0.12);
+    filter: brightness(1.03);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .main-container-sensorc:active::before {
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .main-container-sensorc:active {
+    transform: translateY(-1px);
+    box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.14);
+    filter: brightness(1.03);
+  }
+}
+
+.main-container-sensorc:focus-within::before {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.main-container-sensorc:focus-within {
+  transform: translateY(-1px);
+  box-shadow: 0 0.4rem 1rem rgba(0, 0, 0, 0.14);
+  filter: brightness(1.03);
+}
+
+
 

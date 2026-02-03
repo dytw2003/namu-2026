@@ -1,5 +1,5 @@
 
-:root { --header-h: 5rem; }
+:root { --header-h: 4.8rem; }
 
 .app-main {
   padding-top: calc(var(--header-h) + env(safe-area-inset-top, 0px));
