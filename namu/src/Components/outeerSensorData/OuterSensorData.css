@@ -1,0 +1,326 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+
+
+
+
+/* ===== Main container ===== */
+.outersensor-main-container {
+    width: 100%;
+    height: max-content;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    padding-top: 1rem;
+
+}
+
+.outersensor-main-container.dark {
+    background: #2A5552;
+}
+
+.outersensor-main-container.light {
+    background: #EBF0C8;
+}
+
+
+.outer-inner-main {
+    width: 100%;
+    height: max-content;
+
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    /* ✅ allow wrap */
+    align-items: center;
+    justify-content: flex-start;
+
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+
+    gap: 1rem 1.5rem;
+}
+
+/* ===== Each sensor block ===== */
+.outersensor-current-data {
+    width: max-content;
+    /* 150px */
+    height: max-content;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0.3rem;
+
+}
+
+/* label */
+.outersensor-data-title {
+    width: fit-content;
+    height: 1.125rem;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+    letter-spacing: 0;
+    white-space: nowrap;
+
+}
+
+.outersensor-main-container.dark .outersensor-data-title {
+    color: #FFFFFF66;
+}
+
+.outersensor-main-container.light .outersensor-data-title {
+    color: #00000080;
+}
+
+/* value + unit wrapper */
+.outersenosr-value-unit {
+    width: max-content;
+    /* 78px */
+    line-height: 1.25rem;
+
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: flex-end;
+
+    gap: 0.125rem;
+    /* 2px */
+    white-space: nowrap;
+
+}
+
+/* value */
+.outersenor-value {
+    width: fit-content;
+    height: 1.25rem;
+
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600;
+    font-size: 1.125rem;
+    /* 18px */
+    line-height: 1.25rem;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+.outersensor-main-container.dark .outersenor-value {
+    color: #FFFFFF;
+}
+
+.outersensor-main-container.light .outersenor-value {
+    color: #000000;
+}
+
+
+.outersensor-main-container.dark .outersensor-dash {
+    color: #FFFFFF;
+}
+
+.outersensor-main-container.light .outersensor-dash {
+    color: #000000;
+}
+
+/* unit */
+.outersensor-unit {
+    width: fit-content;
+    /* ✅ units vary (°C, %, w/㎡) */
+    height: 0.875rem;
+
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.625rem;
+    /* 10px */
+    line-height: 0.875rem;
+    letter-spacing: 0;
+    white-space: nowrap;
+}
+
+.outersensor-main-container.dark .outersensor-unit {
+    color: #FFFFFFE5;
+}
+
+.outersensor-main-container.light .outersensor-unit {
+    color: #000000E5;
+    /* ✅ fixed (was wrongly dark) */
+}
+
+/* ===== Rain icon area (same structure) ===== */
+.outersensor-current-data:last-of-type .outersenosr-value-unit {
+    gap: 0.5rem;
+    align-items: center;
+}
+
+/* icon size */
+.outersenosr-value-unit svg {
+    width: 1.125rem;
+    /* 18px */
+    height: 1.125rem;
+}
+
+/* icon colors depending on theme */
+.outersensor-main-container.dark .outersenosr-value-unit svg {
+    color: #FFFFFFE5;
+}
+
+.outersensor-main-container.light .outersenosr-value-unit svg {
+    color: #1C625D;
+}
+
+/* ===== Last time block ===== */
+.outersensor-current-time {
+    margin-left: auto;
+    /* ✅ push to right on big screens */
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+
+    white-space: nowrap;
+}
+
+.outersensor-time {
+    width: 5rem;
+    height: 1.125rem;
+
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.875rem;
+    line-height: 1.125rem;
+    letter-spacing: 0;
+
+    white-space: nowrap;
+}
+
+.outersensor-main-container.dark .outersensor-time {
+    color: #FFFFFF66;
+}
+
+.outersensor-main-container.light .outersensor-time {
+    color: #00000080;
+}
+
+.outersenosr-surrent-t {
+    width: fit-content;
+    height: 1.25rem;
+
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 1.125rem;
+    line-height: 1.25rem;
+    letter-spacing: 0;
+
+    white-space: nowrap;
+}
+
+.outersensor-main-container.dark .outersenosr-surrent-t {
+    color: #FFFFFF;
+}
+
+.outersensor-main-container.light .outersenosr-surrent-t {
+    color: #000000;
+}
+
+
+
+.main-title {
+    width: 26.25rem;
+    height: 1.1875rem;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 600;
+    font-size: 1rem;
+    line-height: 1.1875rem;
+    letter-spacing: 0;
+    padding-left: 1.25rem;
+}
+
+.outersensor-main-container.dark .main-title {
+    color: #FFFFFF
+}
+
+
+.outersensor-main-container.light .main-title {
+    color: #000000E5
+}
+
+/* ===== Mobile responsive ===== */
+@media (max-width: 710px) {
+    .outer-inner-main {
+        padding-left: 1rem;
+        padding-right: 1rem;
+        gap: 0.75rem 0.5rem;
+    }
+
+    /* each data item becomes flexible */
+    .outersensor-current-data {
+        width: 48%;
+        /* ✅ 2 items per row */
+        justify-content: flex-start;
+        gap: 0.4rem;
+    }
+
+    /* time goes full row */
+    .outersensor-current-time {
+        width: 100%;
+        margin-left: 0;
+        justify-content: flex-start;
+        padding-top: 0.25rem;
+    }
+
+    .outersenosr-surrent-t {
+        font-size: 1rem;
+        line-height: 1.25rem;
+    }
+
+    .outersenor-value {
+        font-size: 1rem;
+    }
+}
+
+@media (max-width: 420px) {
+    .outer-inner-main {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 0.75rem;
+        row-gap: 0.5rem;
+    }
+
+    /* keep each item tight */
+    .outersensor-current-data {
+        width: 6rem;
+        justify-content: flex-start;
+        gap: 0.4rem;
+    }
+}
+
+
+
+
+.outersensor-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+    display: block;
+}
+
+.outersensor-dash {
+    font-size: 1.2rem;
+    line-height: 1;
+}

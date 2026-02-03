@@ -15,7 +15,7 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
   const ecId = `ec_${sid}`;
   const phId = `ph_${sid}`;
   const waterId = `pt_${sid}`;
-  const sensorTitle = title ?? `sensor ${sensorNo}`;
+  const sensorTitle = title ?? `센서 ${sensorNo}`;
 
   // ===theme ===========
   const { theme } = useTheme();
