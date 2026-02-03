@@ -1,0 +1,103 @@
+
+
+.graph-house-checkbox-maindiv {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 1.25rem;
+  align-content: center;
+  padding: 1.25rem;
+}
+
+.graph-house-checkbox-maindiv.dark {
+    background: #2A5552;
+}
+
+.graph-house-checkbox-maindiv.light {
+    background: #F7F4E8;
+}
+
+.graph-house-checkbox-innerdiv {
+  display: flex;
+  flex-direction: row;
+  gap: 0px;
+  align-items: center;
+  justify-items: center;
+  height: max-content;
+  max-width: max-content;
+}
+
+
+.graph-main-container input[type="checkbox"] {
+  display: none;
+}
+
+.custom-checkbox {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 2px;
+  gap: 0.625rem;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.graph-main-container.dark .custom-checkbox {
+  border: 1px solid #FFFFFF66;
+}
+
+.graph-main-container.light .custom-checkbox {
+  border: 1px solid #00000080;
+}
+
+/* Check icon inside checkbox */
+.check-icon {
+  color: transparent;
+  font-size: 24px;
+  transition: color 0.2s ease;
+}
+
+.graph-main-container.dark input[type="checkbox"]:checked + .custom-checkbox {
+  background-color: #2ecc71;
+}
+
+.graph-main-container.light input[type="checkbox"]:checked + .custom-checkbox {
+  background-color: #1C625D;
+}
+
+input[type="checkbox"]:checked + .custom-checkbox .check-icon {
+  color: white;
+}
+
+
+.checkbox-label-text {
+  width: max-content;
+  height: 1.125rem;
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.graph-main-container.dark .checkbox-label-text {
+  color: #FFFFFFE5;
+}
+
+.graph-main-container.light .checkbox-label-text {
+  color: #000000E5;
+}
+
+
+.house-wrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+
