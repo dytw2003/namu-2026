@@ -1,8 +1,7 @@
-
-
+/* ===== Main wrapper ===== */
 .graph-house-checkbox-maindiv {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-start;
   gap: 1.25rem;
@@ -10,34 +9,115 @@
   padding: 1.25rem;
 }
 
+/* Theme background */
 .graph-house-checkbox-maindiv.dark {
-    background: #2A5552;
+  background: #2a5552;
 }
 
 .graph-house-checkbox-maindiv.light {
-    background: #F7F4E8;
+  background: #f7f4e8;
 }
 
+/* ===== Title row ===== */
+.graph-title-close {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.graph-title {  
+  height: 1.1875rem;    
+  font-family: "Pretendard", sans-serif;
+  font-weight: 500;      
+  font-size: 0.9375rem;   
+  line-height: 1.1875rem; 
+  letter-spacing: 0;
+}
+
+.graph-house-checkbox-maindiv.dark .graph-title{
+color:#FFFFFF;
+}
+
+.graph-house-checkbox-maindiv.light .graph-title{
+  color:#000000;
+}
+
+
+.graph-open-close {
+ 
+  height: 1.1875rem;    
+  font-family: "Pretendard", sans-serif;
+  font-weight: 500;      
+  font-size: 0.9375rem;   
+  line-height: 1.1875rem; 
+  letter-spacing: 0;
+   cursor: pointer;
+}
+
+.graph-house-checkbox-maindiv.dark .graph-open-close{
+color:#FFFFFF;
+}
+
+.graph-house-checkbox-maindiv.light .graph-open-close{
+  color:#000000;
+}
+
+
+
+
+
+
+.sensor-selection {
+ 
+  height: 1.1875rem;    
+  font-family: "Pretendard", sans-serif;
+  font-weight: 500;      
+  font-size: 0.9375rem;   
+  line-height: 1.1875rem; 
+  letter-spacing: 0;
+}
+
+.graph-house-checkbox-maindiv.dark .sensor-selection{
+color:#FFFFFF;
+}
+
+.graph-house-checkbox-maindiv.light .sensor-selection{
+  color:#000000;
+}
+
+
+
+/* ===== Sensor selection wrapper ===== */
+.house-wrapper {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  gap: 1.25rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Each checkbox row */
 .graph-house-checkbox-innerdiv {
   display: flex;
   flex-direction: row;
-  gap: 0px;
+  gap: 0.2rem;
   align-items: center;
-  justify-items: center;
   height: max-content;
-  max-width: max-content;
+  width: max-content;
 }
 
-
-.graph-main-container input[type="checkbox"] {
+/* ✅ Hide native checkbox */
+.graph-house-checkbox-maindiv input[type="checkbox"] {
   display: none;
 }
 
+/* Custom checkbox box */
 .custom-checkbox {
   width: 1rem;
   height: 1rem;
   border-radius: 2px;
-  gap: 0.625rem;
   background-color: transparent;
   display: flex;
   justify-content: center;
@@ -45,34 +125,37 @@
   cursor: pointer;
 }
 
-.graph-main-container.dark .custom-checkbox {
-  border: 1px solid #FFFFFF66;
+/* Border color by theme */
+.graph-house-checkbox-maindiv.dark .custom-checkbox {
+  border: 1px solid #ffffff66;
 }
 
-.graph-main-container.light .custom-checkbox {
+.graph-house-checkbox-maindiv.light .custom-checkbox {
   border: 1px solid #00000080;
 }
 
-/* Check icon inside checkbox */
+/* Check icon */
 .check-icon {
   color: transparent;
-  font-size: 24px;
+  font-size: 0.875rem;
   transition: color 0.2s ease;
 }
 
-.graph-main-container.dark input[type="checkbox"]:checked + .custom-checkbox {
+/* Checked background */
+.graph-house-checkbox-maindiv.dark input[type="checkbox"]:checked + .custom-checkbox {
   background-color: #2ecc71;
 }
 
-.graph-main-container.light input[type="checkbox"]:checked + .custom-checkbox {
-  background-color: #1C625D;
+.graph-house-checkbox-maindiv.light input[type="checkbox"]:checked + .custom-checkbox {
+  background-color: #1c625d;
 }
 
-input[type="checkbox"]:checked + .custom-checkbox .check-icon {
+/* Show icon when checked */
+.graph-house-checkbox-maindiv input[type="checkbox"]:checked + .custom-checkbox .check-icon {
   color: white;
 }
 
-
+/* Label text */
 .checkbox-label-text {
   width: max-content;
   height: 1.125rem;
@@ -84,20 +167,233 @@ input[type="checkbox"]:checked + .custom-checkbox .check-icon {
   white-space: nowrap;
 }
 
-.graph-main-container.dark .checkbox-label-text {
+/* Label color by theme */
+.graph-house-checkbox-maindiv.dark .checkbox-label-text {
+  color: #ffffffe5;
+}
+
+.graph-house-checkbox-maindiv.light .checkbox-label-text {
+  color: #000000e5;
+}
+
+
+/* ===== Time / Date UI ===== */
+.graph-time-container {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.time-text-wrapper {
+  height: 2rem;
+  min-width: max-content;
+  display: flex;
+  align-items: center;
+}
+
+.graph-time-text {
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+/* ✅ FIXED: theme selectors now match your wrapper */
+.graph-house-checkbox-maindiv.dark .graph-time-text {
   color: #FFFFFFE5;
 }
 
-.graph-main-container.light .checkbox-label-text {
+.graph-house-checkbox-maindiv.light .graph-time-text {
   color: #000000E5;
 }
 
-
-.house-wrapper {
+.graph-dandt {
   display: flex;
   flex-direction: row;
-  gap: 1.25rem;
+  gap: 1rem;
+  align-items: center;
   flex-wrap: wrap;
+}
+
+.graph-timeselection-btn {
+  display: flex;
+  flex-direction: row;
+  width: 11.25rem;
+  height: 2rem;
+}
+
+.month_wise,
+.day_wise,
+.week_wise {
+  height: 2rem;
+  width: 3.75rem;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  border: none;
+
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  letter-spacing: 0;
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* ✅ FIXED: theme selectors */
+.graph-house-checkbox-maindiv.dark .month_wise,
+.graph-house-checkbox-maindiv.dark .day_wise,
+.graph-house-checkbox-maindiv.dark .week_wise {
+  background-color: #00000024;
+  color: #ffffffe5;
+}
+
+.graph-house-checkbox-maindiv.light .month_wise,
+.graph-house-checkbox-maindiv.light .day_wise,
+.graph-house-checkbox-maindiv.light .week_wise {
+  background-color: #00000014;
+  color: #000000e5;
+}
+
+/* Active state (if you later add .active) */
+.graph-house-checkbox-maindiv.dark .day_wise.active,
+.graph-house-checkbox-maindiv.dark .week_wise.active,
+.graph-house-checkbox-maindiv.dark .month_wise.active {
+  background-color: #3ec696;
+  color: #222735;
+  font-weight: 600;
+}
+
+.graph-house-checkbox-maindiv.light .day_wise.active,
+.graph-house-checkbox-maindiv.light .week_wise.active,
+.graph-house-checkbox-maindiv.light .month_wise.active {
+  background-color: #1c625d;
+  color: #fffdf4;
+  font-weight: 600;
+}
+
+/* Date picker layout */
+.graph-date-selection {
+  display: flex;
+  flex-direction: row;
+  width: 17.3125rem;
+  height: 2rem;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.graph-starting-date {
+  display: flex;
+  align-items: center;
+  height: 2rem;
+}
+
+/* Separator */
+.graph-seperation-sign {
+  width: 0.5625rem;
+  height: 1.125rem;
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.125rem;
+  letter-spacing: 0;
+}
+
+/* ✅ FIXED: theme selectors */
+.graph-house-checkbox-maindiv.dark .graph-seperation-sign {
+  color: #ffffffe5;
+}
+
+.graph-house-checkbox-maindiv.light .graph-seperation-sign {
+  color: #000000e5;
+}
+
+/* ===== DatePicker input styling (optional but recommended) ===== */
+.graph-house-checkbox-maindiv .react-datepicker-wrapper {
+  width: auto;
+}
+
+.graph-house-checkbox-maindiv .react-datepicker__input-container input {
+  height: 2rem;
+  width: 8.125rem;
+  padding-left: 0.625rem;
+  padding-right: 0.625rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: "Pretendard", sans-serif;
+  font-size: 0.875rem;
+}
+
+/* Background for input (theme) */
+.graph-house-checkbox-maindiv.dark .react-datepicker__input-container input {
+  background-color: #00000024;
+  color: #ffffffe5;
+}
+
+.graph-house-checkbox-maindiv.light .react-datepicker__input-container input {
+  background-color: #00000014;
+  color: #000000e5;
+}
+
+/* ===== Mobile responsiveness ===== */
+@media screen and (max-width: 768px) {
+  .graph-time-container {
+    height: max-content;
+  }
+
+  .graph-dandt {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .graph-date-selection {
+    width: 17.3125rem;
+    height: 2rem;
+  }
+}
+
+
+
+.toast-center {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+}
+
+
+.toast-center-body {
+  text-align: center;
+}
+
+/* Move the Toastify container to the center */
+.toast-center-container {
+  position: fixed !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+
+  /* important: override Toastify default width/spacing */
+  width: max-content !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Optional: keep toast box nice */
+.toast-center {
+  border-radius: 12px !important;
+}
+
+/* Optional: center text */
+.toast-center-body {
+  text-align: center;
 }
 
 
