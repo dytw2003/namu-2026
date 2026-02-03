@@ -4,9 +4,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 1.25rem;
+  gap: 0.2rem;
   align-content: center;
-  padding: 1.25rem;
+  padding: 0.7rem 1.25rem;
+ 
 }
 
 /* Theme background */
@@ -24,6 +25,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  align-items: center;
 }
 
 .graph-title {  
@@ -43,24 +45,46 @@ color:#FFFFFF;
   color:#000000;
 }
 
-
 .graph-open-close {
- 
-  height: 1.1875rem;    
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+
+  height: 2.5rem;
+  padding: 0 1rem;
+
+  border-radius: 0.5rem;
+  background: transparent;
+
   font-family: "Pretendard", sans-serif;
-  font-weight: 500;      
-  font-size: 0.9375rem;   
-  line-height: 1.1875rem; 
+  font-weight: 500;        
+  font-size: 0.9375rem;    
+  line-height: 1.1875rem;   
   letter-spacing: 0;
-   cursor: pointer;
+
+  cursor: pointer;
+  user-select: none;
 }
 
-.graph-house-checkbox-maindiv.dark .graph-open-close{
-color:#FFFFFF;
+/* Dark theme */
+.graph-house-checkbox-maindiv.dark .graph-open-close {
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-.graph-house-checkbox-maindiv.light .graph-open-close{
-  color:#000000;
+.graph-house-checkbox-maindiv.dark .graph-open-close:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* Light theme */
+.graph-house-checkbox-maindiv.light .graph-open-close {
+  color: #000000;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.graph-house-checkbox-maindiv.light .graph-open-close:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 
@@ -394,6 +418,29 @@ color:#FFFFFF;
 /* Optional: center text */
 .toast-center-body {
   text-align: center;
+}
+
+
+
+.graph-open-close-text {
+  font: inherit; /* inherits size/weight from .graph-open-close */
+}
+
+/* If you use <span className="graph-open-close-icon"> */
+.graph-open-close-icon {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.1rem;
+}
+
+/* Keyboard focus */
+.graph-open-close:focus {
+  outline: none;
+}
+
+.graph-open-close:focus-visible {
+  outline: 2px solid rgba(62, 198, 150, 0.6);
+  outline-offset: 2px;
 }
 
 
