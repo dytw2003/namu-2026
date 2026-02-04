@@ -1,0 +1,12 @@
+.graphpage-main-div{
+ min-height: 90vh;
+width: 100%;
+}
+
+.graphpage-main-div.dark {
+    background: #3F4768;
+}
+
+.graphpage-main-div.light {
+    background: #FFFFFF;
+}

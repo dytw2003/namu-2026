@@ -30,7 +30,7 @@ function HeaderComoponent() {
 
       {/* Center */}
       <nav className="header-nav">
-        <NavLink to="/" end className="nav-item-home">
+        <NavLink to="/home" end className="nav-item-home">
           홈
         </NavLink>
 

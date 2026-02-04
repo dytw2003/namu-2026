@@ -1,0 +1,1298 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Pretendard-Regular', sans-serif;
+
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  /* Prevent scrolling */
+}
+
+@font-face {
+  font-family: 'Pretendard-Regular';
+  src: url('https://fastly.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+input::placeholder {
+  color: gray;
+
+}
+
+.loginContainer.dark-mode input::placeholder {
+  color: #FFFFFF66;
+  opacity: 0.7;
+}
+
+.loginContainer.light-mode input::placeholder {
+  color: #00000080;
+  opacity: 0.7;
+}
+
+
+
+/* Dark Mode Autofill */
+.loginContainer.dark-mode input:-webkit-autofill,
+.loginContainer.dark-mode input:-webkit-autofill:hover,
+.loginContainer.dark-mode input:-webkit-autofill:focus,
+.loginContainer.dark-mode input:-webkit-autofill:active {
+  background-color: transparent !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  /* 🔥 Use this instead of `color` */
+  -webkit-box-shadow: 0 0 0px 1000px #222735 inset !important;
+  box-shadow: 0 0 0px 1000px #222735 inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Light Mode Autofill */
+.loginContainer.light-mode input:-webkit-autofill,
+.loginContainer.light-mode input:-webkit-autofill:hover,
+.loginContainer.light-mode input:-webkit-autofill:focus,
+.loginContainer.light-mode input:-webkit-autofill:active {
+  background-color: transparent !important;
+  -webkit-text-fill-color: #000000 !important;
+  /* ✅ Correct autofill text color */
+  -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+  /* ✅ Force transparent background */
+  box-shadow: 0 0 0px 1000px transparent inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+  /* ✅ Prevent default autofill color */
+}
+
+
+
+
+
+
+
+.loginContainer.dark-mode input:-webkit-autofill,
+.loginContainer.dark-mode textarea:-webkit-autofill {
+  -webkit-text-fill-color: #FFFFFF !important;
+}
+
+
+.loginContainer.light-mode input:-webkit-autofill,
+.loginContainer.light-mode textarea:-webkit-autofill {
+  -webkit-text-fill-color: #000000 !important;
+}
+
+
+
+
+
+.loginContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  /* background-color: #222735; */
+  width: 100%;
+  height: 100vh;
+  padding-bottom: 0;
+}
+
+
+.loginContainer.dark-mode {
+  background-color: #222735;
+}
+
+.loginContainer.light-mode {
+  background-color: #FFFDF4;
+}
+
+/* 
+.wrapper {
+    display: flex;
+    
+    align-items: center;
+    justify-content: flex-start;
+    width: 16.25rem;
+    height: 41.5rem;
+    flex-direction: column;
+    padding-top: 8.75rem;
+   
+    position: relative;
+
+} */
+
+
+
+.logoAndName {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 7.35rem;
+  height: 2.1rem;
+  overflow: hidden;
+  margin-top: 11.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.logo {
+  object-fit: contain;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 16.25rem;
+  height: 8.25rem;
+  gap: 0.75rem;
+
+}
+
+
+
+.inputSection {
+  width: 16.25rem;
+  height: 6.25rem;
+}
+
+
+.userNameInput {
+  width: 100%;
+  height: 3.125rem;
+  background: none;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+
+  padding-right: 1rem;
+  padding-left: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-bottom: none;
+}
+
+.loginContainer.dark-mode .userNameInput {
+  border: 0.0625rem solid #FFFFFF29;
+  color: #FFFFFF;
+  border-bottom: none;
+}
+
+.loginContainer.light-mode .userNameInput {
+  border: 0.0625rem solid #00000029;
+  color: #000000;
+  border-bottom: none;
+}
+
+
+.passwordInput {
+  border-top: none;
+  width: 100%;
+  height: 3.125rem;
+  background: none;
+  border-bottom-right-radius: 0.5rem;
+  border-bottom-left-radius: 0.5rem;
+  /* border: 0.0625rem solid #FFFFFF29; */
+  padding-right: 1rem;
+  padding-left: 1rem;
+  gap: 0.625rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* color: #FFFFFF; */
+}
+
+.loginContainer.dark-mode .passwordInput {
+  border: 0.0625rem solid #FFFFFF29;
+  color: #FFFFFF;
+  /* border-top: none; */
+}
+
+.loginContainer.light-mode .passwordInput {
+  border: 0.0625rem solid #00000029;
+  color: #000000;
+  /* border-top: none; */
+}
+
+
+.rememberMe {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 1.5rem;
+  gap: 0.25rem;
+  align-items: center;
+  margin-bottom: 0.375rem;
+}
+.rMe{
+  white-space: nowrap;
+}
+
+
+.missingPassword {
+  display: flex;
+  flex-direction: row;
+  gap: 0.25rem;
+  width: 100%;
+  height: 1.25rem;
+  align-items: center;
+  justify-items: center;
+
+
+}
+
+
+
+.again {
+  color: #DE1364;
+  width: 14.75rem;
+  height: 1.125rem;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.12rem;
+}
+
+
+.rMe {
+  width: 5.75rem;
+  height: 1.125rem;
+  font-weight: 400;
+  font-size: 0.875rem;
+  line-height: 1.12rem;
+}
+
+.loginContainer.dark-mode .rMe {
+  color: #FFFFFF66;
+}
+
+.loginContainer.light-mode .rMe {
+  color: #00000080;
+}
+
+
+
+
+
+.wrongInputs {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: auto;
+  gap: 0.25rem;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.12rem;
+}
+
+.textPassOrUser {
+
+  width: 14.75rem;
+  height: 2.25rem;
+  font-weight: 400;
+  font-size: 0.87rem;
+  line-height: 1.12rem;
+}
+
+.loginContainer.dark-mode .textPassOrUser {
+  color: #DE1364;
+}
+
+.loginContainer.light-mode .textPassOrUser {
+  color: #EC2337;
+}
+
+#logInBtn {
+  margin-top: 20px;
+  background-color: #CDD2E380;
+  width: 100%;
+  height: 2.875rem;
+  border-radius: 0.5rem;
+  border: none;
+  transition: margin-top 0.3s ease-in-out;
+
+}
+
+.loginContainer.dark-mode #logInBtn {
+  color: #222735;
+  border: none;
+  transition: margin-top 0.3s ease-in-out;
+
+}
+
+.loginContainer.light-mode #logInBtn {
+  color: #FFFDF4;
+  border: none;
+  transition: margin-top 0.3s ease-in-out;
+
+}
+
+.logInText {
+  color: #222735;
+  width: 16.25rem;
+  height: 1.125rem;
+  font-weight: 600;
+  font-size: 0.9375rem;
+  line-height: 1.1875rem;
+  text-align: center;
+}
+
+.login-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 6.5rem;
+  padding: 1.875rem 1.25rem;
+  gap: 0.375rem;
+  margin-top: auto;
+}
+
+.login-footer2-leftside {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+
+  width: 39.4375rem;
+  opacity: 40%;
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  line-height: 1.1875rem;
+  text-align: left;
+}
+
+.loginContainer.dark-mode .login-footer2-leftside {
+  color: #FFFFFFE5;
+}
+
+.loginContainer.light-mode .login-footer2-leftside {
+  color: #000000E5;
+}
+
+.login-footer2-rightside {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 21.4375rem;
+  height: 1.1875rem;
+  /* 19px */
+  opacity: 40%;
+  font-family: "Pretendard", sans-serif;
+  font-weight: 400;
+  font-size: 0.8125rem;
+  line-height: 1.1875rem;
+  text-align: right;
+}
+
+
+.loginContainer.dark-mode .login-footer2-rightside {
+  color: #FFFFFFE5;
+}
+
+.loginContainer.light-mode .login-footer2-rightside {
+  color: #000000E5;
+}
+
+
+
+.icons1 {
+  width: 1.25rem;
+  height: 1.25rem;
+  object-fit: cover;
+}
+
+.noPass {
+  width: 1.35rem;
+  height: 1.35rem;
+  object-fit: cover;
+}
+
+.passwordInputError {
+  border: 1px solid #DE1364;
+
+}
+
+#logInBtn:hover {
+  background-color: #3EC696;
+
+}
+
+#logInBtn:active {
+  background-color: #3EC696;
+  /* Button color when clicked */
+
+}
+
+
+
+#noPassword {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* new added company ecperts */
+.login-footer-company-experts-wrapper {
+  display: flex;
+  flex-direction: row;
+  overflow: hidden;
+
+  width: 100%;
+  /* background-color: green; */
+  height: max-content;
+  position: relative;
+
+}
+
+
+.login-footer-comapny-experts-wrapper:hover .login-footer-company-experts {
+  animation-play-state: paused;
+}
+
+
+.login-footer-company-experts {
+  display: flex;
+  flex-direction: row;
+  max-width: 100%;
+  width: max-content;
+  height: max-content;
+  /* background-color: green; */
+  margin-top: 4rem;
+  gap: 1.25rem;
+  padding: 1.5rem;
+
+  animation: scrollAnimation 59s linear infinite;
+  cursor: pointer;
+
+}
+
+.login-footer-company-firstexp {
+
+  flex: 0 0 auto;
+  width: 14.125rem;
+  height: 15rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #f5f5f5;
+  border-radius: 0.5rem;
+  transition: transform 0.5s ease;
+  position: relative;
+}
+
+.login-footer-company-firstexp:hover {
+  transform: scale(1.5);
+  z-index: 10;
+}
+
+.login-footer-company-firstexp a {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+
+.login-footer-company-firstexp a img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@keyframes scrollAnimation {
+  0% {
+    transform: translateX(-400%);
+  }
+
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+
+/* overlay */
+.image-overlay {
+  position: absolute;
+  left: 50%;
+
+  bottom: 0;
+  transform: translateX(-50%);
+
+  /* top: 75%;
+    transform: translate(-50%, -50%); */
+  /* color: white; */
+  text-align: left;
+  padding: 1.25rem;
+  /* background: #0000004D; */
+  background: rgba(0, 0, 0, 0.60);
+
+  width: 100%;
+  height: max-content;
+}
+
+.image-overlay h2 {
+
+  color: #FFF;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-style: normal;
+  font-weight: 600;
+  line-height: normal;
+  margin-bottom: 0.625rem;
+  white-space: nowrap;
+
+}
+
+/* .image-overlay p {
+    font-size: 1rem;
+    margin: 0;
+    white-space: nowrap;
+  } */
+
+.image-overlay span {
+  height: 4.125rem;
+  flex-shrink: 0;
+  align-self: stretch;
+
+  /* Typography */
+  color: #FFF;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.75rem;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1rem;
+  /* 133.333% */
+}
+
+.login-footer2-contact  {
+  color: inherit;         
+  text-decoration: none;  
+display: flex;
+
+}
+
+.login-footer2-contact a {
+  color: inherit;         
+  text-decoration: none;  
+  white-space: nowrap;
+}
+
+
+
+
+/* for mobile */
+
+
+
+@media (max-width: 375px) and (min-width: 320px) {
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    max-height: 100%;
+    /* overflow: hidden; */
+    /* Prevent scrolling */
+  }
+
+
+  .loginContainer {
+
+    display: flex;
+    max-height: 100%;
+    height: 100%;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    /* background-color: #222735; */
+    min-height: 100vh;
+
+  }
+
+
+
+
+  .logo {
+    max-width: 100%;
+    max-height: 100%;
+    width: 6rem;
+    height: 4rem;
+    object-fit: contain;
+  }
+
+  .logoAndName {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 4rem;
+    height: auto;
+
+  }
+
+
+  .wrapper {
+    width: 16.25rem;
+    height: max-content;
+    /* padding-top: 5.625rem; */
+    /* gap: 1.25rem; */
+  }
+
+  .login-footer {
+    width: 100%;
+    height: 7.6875rem;
+    padding: 1.875rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+  }
+
+  .login-footer2-leftside {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 2.375rem;
+    opacity: 40%;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.1875rem;
+    text-align: center;
+  }
+
+  .login-footer2-rightside {
+
+    width: 100%;
+    height: 1.1875rem;
+    opacity: 40%;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.1875rem;
+    display: flex;
+    align-items: center;
+    text-align: center;
+  }
+
+
+  .login-footer2-address{
+    height:100%;
+    width:100%;
+    white-space: nowrap;
+   
+    
+  }
+
+
+  /* new added  */
+  .login-footer-company-experts-wrapper {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+    width: 100%;
+    /* background-color: green; */
+    height: max-content;
+    position: relative;
+
+  }
+
+ 
+
+  .login-footer-company-experts {
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+    width: max-content;
+    height: 12rem;
+
+    gap: 1.25rem;
+
+    margin-bottom: 2rem;
+
+    animation: scrollAnimation 35s linear infinite;
+    cursor: pointer;
+    animation-play-state: running;
+    will-change: transform;
+
+
+  }
+
+  .login-footer-company-firstexp {
+
+    flex: 0 0 auto;
+    width: 16rem;
+    height: 12rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5;
+    border-radius: 0.5rem;
+    transition: transform 0.5s ease;
+    position: relative;
+  }
+
+
+
+  .login-footer-company-firstexp.hovered {
+    transform: scale(1.5);
+    z-index: 10;
+  }
+
+
+  .login-footer-company-firstexp a {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+
+
+
+
+  .login-footer-company-firstexp a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* or "cover" based on your design */
+  }
+
+  @keyframes scrollAnimation {
+    0% {
+      transform: translateX(-400%);
+    }
+
+    100% {
+      transform: translateX(0%);
+    }
+  }
+
+
+  /* overlay */
+  .image-overlay {
+    position: absolute;
+    left: 50%;
+  
+    bottom: 0;
+    transform: translateX(-50%);
+  
+    /* top: 75%;
+      transform: translate(-50%, -50%); */
+    /* color: white; */
+    text-align: left;
+    padding: 1.25rem;
+    /* background: #0000004D; */
+    background: rgba(0, 0, 0, 0.60);
+  
+    width: 100%;
+    height: max-content;
+  }
+  
+  .image-overlay h2 {
+  
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    margin-bottom: 0.625rem;
+    white-space: nowrap;
+  
+  }
+  
+  /* .image-overlay p {
+      font-size: 1rem;
+      margin: 0;
+      white-space: nowrap;
+    } */
+  
+  .image-overlay span {
+    height: 4.125rem;
+    flex-shrink: 0;
+    align-self: stretch;
+  
+    /* Typography */
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem;
+    /* 133.333% */
+  }
+  
+  
+}
+
+
+@media (max-width: 768px) and (min-width: 376px) {
+
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    
+    min-height: 100vh;
+  width: 100%;
+  box-sizing: border-box;
+  }
+
+
+  .loginContainer {
+
+    display: flex;
+    max-height: 100%;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    /* background-color: #222735; */
+    min-height: 100vh;
+
+
+  }
+
+
+
+
+  .logo {
+    max-width: 100%;
+    max-height: 100%;
+    width: 7rem;
+    height: 4rem;
+    object-fit: contain;
+  }
+
+  .logoAndName {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 6rem;
+    height: auto;
+    max-height: 100vh;
+  }
+
+
+  .wrapper {
+    width: 16.25rem;
+    height: max-content;
+    /* padding-top: 5.625rem; */
+    /* gap: 1.25rem; */
+  }
+
+  .login-footer {
+    width: 100%;
+    height: 7.6875rem;
+    padding: 1.875rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+  }
+
+  .login-footer2-leftside {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 2.375rem;
+    opacity: 40%;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.1875rem;
+    text-align: center;
+  }
+
+  .login-footer2-rightside {
+
+    width: 100%;
+    height: 1.1875rem;
+    opacity: 40%;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.1875rem;
+    display: flex;
+    align-items: center;
+    text-align: center;
+  }
+
+
+  /* new added  */
+  .login-footer-company-experts-wrapper {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+    width: 100%;
+    /* background-color: green; */
+    height: max-content;
+    position: relative;
+
+  }
+
+
+  .login-footer-comapny-experts-wrapper:hover .login-footer-company-experts {
+    animation-play-state: paused;
+  }
+
+
+  .login-footer-company-experts {
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+    width: max-content;
+    height: 12rem;
+    /* background-color: green; */
+    /* margin-top: 4rem; */
+    gap: 1.25rem;
+    /* padding: 1.5rem; */
+    margin-bottom: 2rem;
+
+    animation: scrollAnimation 59s linear infinite;
+    cursor: pointer;
+    /* background-color: green; */
+
+  }
+
+  .login-footer-company-firstexp {
+
+    flex: 0 0 auto;
+    width: 16rem;
+    height: 12rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5;
+    border-radius: 0.5rem;
+    transition: transform 0.5s ease;
+    position: relative;
+  }
+
+  .login-footer-company-firstexp:hover {
+    transform: scale(1.5);
+    z-index: 10;
+    /* Optional: bring to front */
+  }
+
+  .login-footer-company-firstexp a {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+
+  .login-footer-company-firstexp a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* or "cover" based on your design */
+  }
+
+  @keyframes scrollAnimation {
+    0% {
+      transform: translateX(-400%);
+    }
+
+    100% {
+      transform: translateX(0%);
+    }
+  }
+
+
+  /* overlay */
+  .image-overlay {
+    position: absolute;
+    left: 50%;
+  
+    bottom: 0;
+    transform: translateX(-50%);
+  
+    /* top: 75%;
+      transform: translate(-50%, -50%); */
+    /* color: white; */
+    text-align: left;
+    padding: 1.25rem;
+    /* background: #0000004D; */
+    background: rgba(0, 0, 0, 0.60);
+  
+    width: 100%;
+    height: max-content;
+  }
+  
+  .image-overlay h2 {
+  
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    margin-bottom: 0.625rem;
+    white-space: nowrap;
+  
+  }
+  
+  /* .image-overlay p {
+      font-size: 1rem;
+      margin: 0;
+      white-space: nowrap;
+    } */
+  
+  .image-overlay span {
+    height: 4.125rem;
+    flex-shrink: 0;
+    align-self: stretch;
+  
+    /* Typography */
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem;
+    /* 133.333% */
+  }
+  
+  
+
+}
+
+
+/* for tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+  .loginContainer {
+    display: flex;
+    height: 100vh;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+
+  }
+
+  .logoAndName {
+    align-items: center;
+    justify-content: center;
+    display: flex;
+    margin-top: 190px;
+    /* margin-top: 134px; */
+
+  }
+
+  .wrapper {
+    width: 16.25rem;
+    height: max-content;
+
+  }
+
+  .logo {
+    max-width: 100%;
+    max-height: 100%;
+    width: 8rem;
+    height: 6rem;
+    object-fit: contain;
+  }
+
+
+  .login-footer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    height: 4.9375rem;
+    padding: 1.875rem 1.25rem;
+
+    height: 6.5rem;
+    padding: 1.875rem 1.25rem;
+    gap: 0.375rem;
+
+    justify-content: center;
+
+  }
+
+  .login-footer2-leftside {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    width: 39.4375rem;
+    opacity: 40%;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.1875rem;
+    text-align: center;
+  }
+
+
+  .login-footer2-rightside {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 21.4375rem;
+    height: 1.1875rem;
+
+    opacity: 40%;
+    font-family: "Pretendard", sans-serif;
+    font-weight: 400;
+    font-size: 0.8125rem;
+    line-height: 1.1875rem;
+    text-align: center;
+  }
+
+
+
+
+  .login-footer-company-experts-wrapper {
+    display: flex;
+    flex-direction: row;
+    overflow: hidden;
+
+    width: 100%;
+    /* background-color: green; */
+    height: max-content;
+    position: relative;
+    margin-bottom: 3rem;
+
+  }
+
+
+  .login-footer-comapny-experts-wrapper:hover .login-footer-company-experts {
+    animation-play-state: paused;
+  }
+
+
+  .login-footer-company-experts {
+    display: flex;
+    flex-direction: row;
+    max-width: 100%;
+    width: max-content;
+    height: 20rem;
+    /* background-color: green; */
+    margin-top: 4rem;
+    gap: 1.25rem;
+    padding: 1.5rem;
+
+    animation: scrollAnimation 59s linear infinite;
+    cursor: pointer;
+
+  }
+
+  .login-footer-company-firstexp {
+
+    flex: 0 0 auto;
+    width: 16rem;
+    height: 18rem;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #f5f5f5;
+    border-radius: 0.5rem;
+    transition: transform 0.5s ease;
+    position: relative;
+  }
+
+  .login-footer-company-firstexp:hover {
+    transform: scale(1.5);
+    z-index: 10;
+    /* Optional: bring to front */
+  }
+
+  .login-footer-company-firstexp a {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+
+  .login-footer-company-firstexp a img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* or "cover" based on your design */
+  }
+
+  @keyframes scrollAnimation {
+    0% {
+      transform: translateX(-400%);
+    }
+
+    100% {
+      transform: translateX(0%);
+    }
+  }
+
+
+  /* overlay */
+  .image-overlay {
+    position: absolute;
+    left: 50%;
+  
+    bottom: 0;
+    transform: translateX(-50%);
+  
+    /* top: 75%;
+      transform: translate(-50%, -50%); */
+    /* color: white; */
+    text-align: left;
+    padding: 1.25rem;
+    /* background: #0000004D; */
+    background: rgba(0, 0, 0, 0.60);
+  
+    width: 100%;
+    height: max-content;
+  }
+  
+  .image-overlay h2 {
+  
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-style: normal;
+    font-weight: 600;
+    line-height: normal;
+    margin-bottom: 0.625rem;
+    white-space: nowrap;
+  
+  }
+  
+
+  
+  .image-overlay span {
+    height: 4.125rem;
+    flex-shrink: 0;
+    align-self: stretch;
+  
+    /* Typography */
+    color: #FFF;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 1rem;
+    /* 133.333% */
+  }
+  
+  
+
+
+
+
+
+}
