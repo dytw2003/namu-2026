@@ -2,7 +2,7 @@ import React from 'react'
 
 function GraphComponent() {
   return (
-    <div>GraphComponent</div>
+    <div>kiran</div>
   )
 }
 

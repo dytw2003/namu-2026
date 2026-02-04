@@ -6,6 +6,7 @@ import AppLayout from "./layouts/AppLayout/AppLayout";
 
 import GraphComponent from "./Components/graphComponent/GraphComponent";
 import GraphLayout from "./layouts/GraphLayout/GraphLayout";
+import GraphPage from "./pages/GraphPage/GraphPage";
 
 function App() {
   return (
@@ -16,7 +17,7 @@ function App() {
         </Route>
     
         <Route element={<GraphLayout />}>
-          <Route path="/graph" element={<GraphComponent />} />
+          <Route path="/graph" element={<GraphPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

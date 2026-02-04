@@ -12,8 +12,7 @@ function GraphLayout() {
     <div className="graph-layout-main">
       <HeaderComoponent />
       <div className="graph-layout-inner">
-        <GraphPage />
-       <Outlet />
+        <Outlet />
       </div>
 
       <FooterComoponent />
@@ -22,3 +21,5 @@ function GraphLayout() {
 }
 
 export default GraphLayout;
+
+

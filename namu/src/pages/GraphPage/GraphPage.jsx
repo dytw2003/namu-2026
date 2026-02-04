@@ -1,6 +1,7 @@
 import React from 'react'
 
 import SensorSelectionComponent from '../../Components/sensorSelectionComponent/SensorSelectionComponent'
+import EcGraph from '../../Components/graphComponent/EcGraph/EcGraph'
 
 function GraphPage() {
   return (
@@ -8,6 +9,8 @@ function GraphPage() {
       <div className="graphpage-sensor-selection">
         <SensorSelectionComponent />
       </div>
+
+      <EcGraph />
 
     </div>
   )
