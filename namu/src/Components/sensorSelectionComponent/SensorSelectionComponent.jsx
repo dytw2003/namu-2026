@@ -13,7 +13,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-function SensorSelectionComponent() {
+function SensorSelectionComponent({ selected, onToggle }) {
+
   const { theme } = useTheme();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -56,7 +57,11 @@ function SensorSelectionComponent() {
             <div className="sensor-selection">센서 선택</div>
 
             <div className="graph-house-checkbox-innerdiv">
-              <input type="checkbox" id="sensor_temp" />
+              <input type="checkbox"
+                id="sensor_temp"
+                checked={!!selected?.temp}
+                onChange={() => onToggle("temp")}
+              />
               <label htmlFor="sensor_temp" className="custom-checkbox">
                 <FontAwesomeIcon icon={faCheck} className="check-icon" />
               </label>
@@ -64,7 +69,10 @@ function SensorSelectionComponent() {
             </div>
 
             <div className="graph-house-checkbox-innerdiv">
-              <input type="checkbox" id="sensor_hum" />
+              <input type="checkbox" id="sensor_hum"
+                checked={!!selected?.hum}
+                onChange={() => onToggle("hum")}
+              />
               <label htmlFor="sensor_hum" className="custom-checkbox">
                 <FontAwesomeIcon icon={faCheck} className="check-icon" />
               </label>
@@ -72,7 +80,10 @@ function SensorSelectionComponent() {
             </div>
 
             <div className="graph-house-checkbox-innerdiv">
-              <input type="checkbox" id="sensor_ec" />
+              <input type="checkbox" id="sensor_ec"
+                checked={!!selected?.ec}
+                onChange={() => onToggle("ec")}
+              />
               <label htmlFor="sensor_ec" className="custom-checkbox">
                 <FontAwesomeIcon icon={faCheck} className="check-icon" />
               </label>
@@ -80,7 +91,10 @@ function SensorSelectionComponent() {
             </div>
 
             <div className="graph-house-checkbox-innerdiv">
-              <input type="checkbox" id="sensor_ph" />
+              <input type="checkbox" id="sensor_ph"
+                checked={!!selected?.ph}
+                onChange={() => onToggle("ph")}
+              />
               <label htmlFor="sensor_ph" className="custom-checkbox">
                 <FontAwesomeIcon icon={faCheck} className="check-icon" />
               </label>

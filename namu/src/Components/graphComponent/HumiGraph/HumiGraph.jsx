@@ -1,9 +1,9 @@
 import React from 'react'
-import "./EcGraph.css"
+import "./HumiGraph.css"
 
 import { useTheme } from "../../../providers/ThemeProvider/ThemeProvider"
 
-function EcGraph() {
+function HumiGraph() {
   const { theme } = useTheme()
   return (
     <div className= {`temp-graph-main ${theme}`}>
@@ -14,4 +14,4 @@ function EcGraph() {
   )
 }
 
-export default EcGraph
+export default HumiGraph
