@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import GraphApi from "../../../apis/GaphApi/GraphApi";
 
+import "./EcGraph.css";
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -25,6 +27,41 @@ ChartJS.register(
 );
 
 /**
+ * ✅ pH background bands: 0–5, 5–8, 8–14
+ * Drawn behind the line (single canvas).
+ */
+const phBandsPlugin = {
+  id: "phBandsPlugin",
+  beforeDraw(chart) {
+    const { ctx, chartArea, scales } = chart;
+    if (!chartArea) return;
+
+    const y = scales?.y;
+    if (!y) return;
+
+    const { left, right } = chartArea;
+
+    const bands = [
+      { from: 0, to: 5, color: "rgba(255, 99, 132, 0.10)" },  // 0–5
+      { from: 5, to: 8, color: "rgba(255, 206, 86, 0.10)" },  // 5–8
+      { from: 8, to: 14, color: "rgba(75, 192, 192, 0.10)" }, // 8–14
+    ];
+
+    ctx.save();
+    for (const b of bands) {
+      const yTop = y.getPixelForValue(b.to);
+      const yBottom = y.getPixelForValue(b.from);
+      const rectTop = Math.min(yTop, yBottom);
+      const rectH = Math.abs(yBottom - yTop);
+
+      ctx.fillStyle = b.color;
+      ctx.fillRect(left, rectTop, right - left, rectH);
+    }
+    ctx.restore();
+  },
+};
+
+/**
  * Convert "YYYY-MM-DD HH:mm:ss" -> Date (local)
  * If parsing fails, return null.
  */
@@ -36,12 +73,12 @@ function parseTimestamp(ts) {
 }
 
 /**
- * Build RAW (non-grouped) EC map:
+ * Build RAW (non-grouped) pH map:
  * Map(timestampString -> { t: timeMs, v: value })
  * Keeps last value for duplicate timestamps.
  */
-function buildEcMap(rows, sensorNo) {
-  const field = `soil_ec_${sensorNo}`;
+function buildPhMap(rows, sensorNo) {
+  const field = `soil_ph_${sensorNo}`;
   const m = new Map();
 
   for (const r of rows || []) {
@@ -63,7 +100,6 @@ function buildEcMap(rows, sensorNo) {
 
 /**
  * Label for x-axis ticks.
- * (You can change formatting anytime)
  */
 function tsToLabel(ts) {
   const d = parseTimestamp(ts);
@@ -82,7 +118,7 @@ export default function EcGraph() {
   const [err, setErr] = useState("");
   const [seriesMaps, setSeriesMaps] = useState(null); // {1: Map, 2: Map, ...}
 
-  // ✅ zoom "scrollbar" (0 = zoom out/full view, 100 = zoom in/max)
+  // ✅ zoom scrollbar (0 = zoom out/full view, 100 = zoom in/max)
   const [zoomPercent, setZoomPercent] = useState(0);
 
   const chartRef = useRef(null);
@@ -119,15 +155,19 @@ export default function EcGraph() {
 
             if (!res.ok) {
               const text = await res.text().catch(() => "");
-              throw new Error(`HTTP ${res.status} from ${url}\n${text?.slice(0, 200)}`);
+              throw new Error(
+                `HTTP ${res.status} from ${url}\n${text?.slice(0, 200)}`
+              );
             }
 
             const data = await res.json();
             if (!Array.isArray(data)) {
-              throw new Error(`Unexpected response (not array) from sensor${sensorNo}`);
+              throw new Error(
+                `Unexpected response (not array) from sensor${sensorNo}`
+              );
             }
 
-            const map = buildEcMap(data, sensorNo);
+            const map = buildPhMap(data, sensorNo);
             return { sensorNo, map };
           })
         );
@@ -157,9 +197,9 @@ export default function EcGraph() {
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
   // --------------------------------------------
-  const { timelineTs, labels, datasets, ySuggestedMax } = useMemo(() => {
+  const { timelineTs, labels, datasets } = useMemo(() => {
     if (!seriesMaps) {
-      return { timelineTs: [], labels: [], datasets: [], ySuggestedMax: 1 };
+      return { timelineTs: [], labels: [], datasets: [] };
     }
 
     // union timestamps across all sensors
@@ -187,7 +227,6 @@ export default function EcGraph() {
       5: "rgb(255, 159, 64)",
     };
 
-    let globalMax = 0;
     const datasets = [];
 
     for (const sn of [1, 2, 3, 4, 5]) {
@@ -197,31 +236,27 @@ export default function EcGraph() {
       const data = timelineTs.map((ts) => {
         const obj = m.get(ts);
         if (!obj) return null;
-        globalMax = Math.max(globalMax, obj.v);
         return obj.v;
       });
 
       if (!data.some((v) => v !== null)) continue;
 
       datasets.push({
-        label: `${sn}동 배지EC`,
+        label: `${sn}동 배지 pH`,
         data,
         borderColor: COLORS[sn],
         backgroundColor: "transparent",
-        borderWidth: 1, // ✅ thinner line
+        borderWidth: 1,
         pointRadius: 0,
-        pointHitRadius: 6,
+        pointHitRadius: 10, // ✅ easier hover
+        hoverRadius: 4,     // ✅ show hover dot
+        hoverBorderWidth: 2,
         tension: 0.25,
         spanGaps: true,
       });
     }
 
-    return {
-      timelineTs,
-      labels,
-      datasets,
-      ySuggestedMax: Math.max(0.5, globalMax * 1.2),
-    };
+    return { timelineTs, labels, datasets };
   }, [seriesMaps]);
 
   const chartData = useMemo(() => {
@@ -246,15 +281,12 @@ export default function EcGraph() {
     // smallest window at max zoom (show at least 12 points or 5%)
     const minWindow = Math.max(12, Math.floor(total * 0.05));
 
-    // window shrinks as zoom increases
     const t = zoomPercent / 100; // 0..1
     const windowSize = Math.round(total - t * (total - minWindow));
 
-    // anchor to latest data (right side)
     const minIndex = Math.max(0, maxIndex - windowSize);
     const maxVisible = maxIndex;
 
-    // CategoryScale accepts numeric min/max (index)
     chart.options.scales.x.min = minIndex;
     chart.options.scales.x.max = maxVisible;
 
@@ -265,7 +297,14 @@ export default function EcGraph() {
     return {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: { mode: "index", intersect: false },
+
+      // ✅ improved hover
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
+      },
+
       plugins: {
         legend: {
           position: "top",
@@ -275,11 +314,31 @@ export default function EcGraph() {
             color: "#ffffff",
           },
         },
-        tooltip: { enabled: true },
+        tooltip: {
+          enabled: true,
+          displayColors: true,
+          padding: 10,
+          backgroundColor: "rgba(0,0,0,0.75)",
+          titleColor: "#fff",
+          bodyColor: "#fff",
+          borderColor: "rgba(255,255,255,0.15)",
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => {
+              if (!items?.length) return "";
+              return labels[items[0].dataIndex] || "";
+            },
+            label: (ctx) => {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
+              return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+            },
+          },
+        },
       },
+
       scales: {
         x: {
-          // min/max are controlled by zoom effect above
           ticks: {
             color: "#ffffff",
             maxRotation: 0,
@@ -289,83 +348,67 @@ export default function EcGraph() {
           grid: { color: "rgba(255,255,255,0.08)" },
         },
         y: {
-          beginAtZero: true,
-          suggestedMax: ySuggestedMax,
-          ticks: { color: "#ffffff" },
+          // ✅ fixed pH range
+          min: 0,
+          max: 14,
+          ticks: {
+            color: "#ffffff",
+            stepSize: 1,
+          },
           grid: { color: "rgba(255,255,255,0.08)" },
           title: {
             display: true,
-            text: "EC (dS/m)",
+            text: "pH",
             color: "#ffffff",
           },
         },
       },
     };
-  }, [ySuggestedMax]);
+  }, [labels]);
 
   return (
-    <div style={{ padding: "1rem" }}>
-      <div style={{ color: "#cbd5e1", marginBottom: "0.5rem" }}>
-        payload username: {username}
-      </div>
-
-      <div
-        style={{
-          background: "#3f4a69",
-          borderRadius: "18px",
-          padding: "18px",
-        }}
-      >
-        {/* ✅ Zoom scrollbar (replaces Reset Zoom button) */}
-        <div style={{ marginBottom: "12px" }}>
+    <div className="ec-page">
+      <div className="ec-card">
+        {/* Zoom */}
+        <div className="ec-zoom-wrap">
           <input
+            className="ec-zoom-range"
             type="range"
             min="0"
             max="100"
             value={zoomPercent}
             onChange={(e) => setZoomPercent(Number(e.target.value))}
-            style={{
-              width: "100%",
-              height: "10px",
-              borderRadius: "999px",
-              cursor: "pointer",
-              background: "rgba(255,255,255,0.18)",
-              appearance: "none",
-              outline: "none",
-            }}
           />
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              marginTop: "6px",
-              fontSize: "12px",
-              color: "rgba(255,255,255,0.8)",
-              userSelect: "none",
-            }}
-          >
-            <span>Zoom Out</span>
-            <span>Zoom In</span>
+
+          <div className="ec-zoom-labels">
+            <span>0%</span>
+            <span>100%</span>
           </div>
         </div>
 
-        <div style={{ height: "520px" }}>
-          {loading && <div style={{ color: "#fff" }}>Loading...</div>}
+        {/* Chart */}
+        <div className="ec-chart-wrap">
+          {loading && <div className="ec-msg">Loading...</div>}
 
-          {!loading && err && (
-            <div style={{ color: "tomato", whiteSpace: "pre-wrap" }}>{err}</div>
-          )}
+          {!loading && err && <div className="ec-msg ec-msg--err">{err}</div>}
 
           {!loading && !err && datasets.length === 0 && (
-            <div style={{ color: "#fff" }}>
-              No EC data found (all sensors are null).
-            </div>
+            <div className="ec-msg">No pH data found (all sensors are null).</div>
           )}
 
           {!loading && !err && datasets.length > 0 && (
-            <Line ref={chartRef} data={chartData} options={options} />
+            <Line
+              ref={chartRef}
+              data={chartData}
+              options={options}
+              plugins={[phBandsPlugin]}
+            />
           )}
         </div>
+      </div>
+
+      <div className="graph-dwn-btn-main">
+        <div className="graph-den-btn">다운로드 (CSV File)</div>
       </div>
     </div>
   );
