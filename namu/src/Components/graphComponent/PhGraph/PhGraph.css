@@ -1,12 +1,11 @@
 
 html, body {
   min-height: 100%;
-  background: #222735;
 }
 .graph-dwn-btn-main {
     width: 100%;
     height: max-content;
-    background-color: #3F4768;
+  
     display: flex;
     align-items: center;
     justify-content: center;
@@ -14,12 +13,20 @@ html, body {
 }
 
 
+.graph-dwn-btn-main.dark {
+  background-color: #3F4768;
+}
+
+.graph-dwn-btn-main.light {
+  background-color: #FFFFFFE5;
+}
+
+
+
 .graph-den-btn {
     height: 2rem;
     width: 8rem;
-    background-color: #FFFFFF29;
     white-space: nowrap;
-    color: #222735;
     font-family: "Pretendard", sans-serif;
     font-weight: 600;
     font-size: 0.8125rem;
@@ -29,10 +36,29 @@ html, body {
     align-items: center;
     justify-content: center;
     border-radius: 0.3rem;
+    cursor: pointer;
     transition: background-color 150ms ease, transform 120ms ease, box-shadow 150ms ease;
 }
 
-.graph-den-btn:hover {
+.graph-dwn-btn-main.dark .graph-den-btn{
+    background-color: #FFFFFF29;
+    color: #222735;
+}
+
+.graph-dwn-btn-main.light .graph-den-btn{
+    background-color: #00000014;
+    color: #222735;
+}
+
+.graph-dwn-btn-main.dark .graph-den-btn:hover {
+background-color: #3EC696; 
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.18);
+  transform: translateY(-1px);
+  color: #222735;
+}
+
+
+.graph-dwn-btn-main.light .graph-den-btn:hover {
 background-color: #2A5552; 
   box-shadow: 0 0.25rem 0.75rem rgba(0, 0, 0, 0.18);
   transform: translateY(-1px);
@@ -45,8 +71,15 @@ background-color: #2A5552;
 
 .ec-card {
   width: 100%;
-  background: #3f4a69;
-  padding: 0.625rem; /* 10px */
+  padding: 0.625rem; 
+}
+
+.ec-card.dark {
+background: #3f4a69;
+}
+
+.ec-card.light {
+background:#FFFFFFE5;
 }
 
 /* zoom area */
@@ -63,6 +96,15 @@ background-color: #2A5552;
   appearance: none;
   outline: none;
 }
+
+.ec-card.dark .ec-zoom-range {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.ec-card.light .ec-zoom-range {
+    background: #CDD2E380;
+}
+
 
 .ec-zoom-labels {
   display: flex;

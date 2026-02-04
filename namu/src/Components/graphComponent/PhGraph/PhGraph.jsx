@@ -9,6 +9,9 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 
+import { useTheme } from "../../../providers/ThemeProvider/ThemeProvider"
+
+
 
 
 import {
@@ -120,6 +123,8 @@ function tsToLabel(ts) {
 
 export default function PhGraph() {
   const username = "jbsy24";
+
+  const { theme } = useTheme();
 
 
   const showNotReady = () => {
@@ -312,82 +317,91 @@ export default function PhGraph() {
     chart.update("none");
   }, [zoomPercent, labels]);
 
-  const options = useMemo(() => {
-    return {
-      responsive: true,
-      maintainAspectRatio: false,
+ const options = useMemo(() => {
+  const isDark = theme === "dark";
 
-      // ✅ improved hover
-      interaction: {
-        mode: "nearest",
-        axis: "x",
-        intersect: false,
-      },
+  const tickColor = isDark ? "#ffffff" : "#111827";
+  const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
 
-      plugins: {
-        legend: {
-          position: "top",
-          labels: {
-            boxWidth: 24,
-            boxHeight: 10,
-            color: "#ffffff",
-          },
-        },
-        tooltip: {
-          enabled: true,
-          displayColors: true,
-          padding: 10,
-          backgroundColor: "rgba(0,0,0,0.75)",
-          titleColor: "#fff",
-          bodyColor: "#fff",
-          borderColor: "rgba(255,255,255,0.15)",
-          borderWidth: 1,
-          callbacks: {
-            title: (items) => {
-              if (!items?.length) return "";
-              return labels[items[0].dataIndex] || "";
-            },
-            label: (ctx) => {
-              const v = ctx.raw;
-              if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
-              return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
-            },
-          },
+  const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
+  const tooltipTitle = isDark ? "#ffffff" : "#111827";
+  const tooltipBody = isDark ? "#ffffff" : "#111827";
+  const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
+
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+
+    interaction: {
+      mode: "nearest",
+      axis: "x",
+      intersect: false,
+    },
+
+    plugins: {
+      legend: {
+        position: "top",
+        labels: {
+          boxWidth: 24,
+          boxHeight: 10,
+          color: tickColor,
         },
       },
-
-      scales: {
-        x: {
-          ticks: {
-            color: "#ffffff",
-            maxRotation: 0,
-            autoSkip: true,
-            maxTicksLimit: 14,
+      tooltip: {
+        enabled: true,
+        displayColors: true,
+        padding: 10,
+        backgroundColor: tooltipBg,
+        titleColor: tooltipTitle,
+        bodyColor: tooltipBody,
+        borderColor: tooltipBorder,
+        borderWidth: 1,
+        callbacks: {
+          title: (items) => {
+            if (!items?.length) return "";
+            return labels[items[0].dataIndex] || "";
           },
-          grid: { color: "rgba(255,255,255,0.08)" },
-        },
-        y: {
-          // ✅ fixed pH range
-          min: 0,
-          max: 14,
-          ticks: {
-            color: "#ffffff",
-            stepSize: 1,
-          },
-          grid: { color: "rgba(255,255,255,0.08)" },
-          title: {
-            display: true,
-            text: "pH",
-            color: "#ffffff",
+          label: (ctx) => {
+            const v = ctx.raw;
+            if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
+            return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
           },
         },
       },
-    };
-  }, [labels]);
+    },
+
+    scales: {
+      x: {
+        ticks: {
+          color: tickColor,
+          maxRotation: 0,
+          autoSkip: true,
+          maxTicksLimit: 14,
+        },
+        grid: { color: gridColor },
+      },
+      y: {
+        min: 0,
+        max: 14,
+        ticks: {
+          color: tickColor,
+          stepSize: 1,
+        },
+        grid: { color: gridColor },
+        title: {
+          display: true,
+          text: "pH",
+          color: tickColor,
+        },
+      },
+    },
+  };
+}, [labels, theme]);
+
 
   return (
-    <div className="ec-page">
-      <div className="ec-card">
+    <div className= {`ec-page ${theme}`}>
+      <div className= {`ec-card ${theme}`}>
         {/* Zoom */}
         <div className="ec-zoom-wrap">
           <input
@@ -426,7 +440,7 @@ export default function PhGraph() {
         </div>
       </div>
 
-      <div className="graph-dwn-btn-main">
+      <div className={`graph-dwn-btn-main ${theme}`}>
         <div
           className="graph-den-btn"
           onClick={showNotReady}
