@@ -100,7 +100,7 @@ function SensorSelectionComponent() {
                     selected={null}
                     placeholderText="YYYY-MM-DD"
                     dateFormat="yyyy-MM-dd"
-                    onChange={() => {}}
+                    onChange={() => { }}
                     readOnly
                     onInputClick={showNotReady}
                   />
@@ -113,7 +113,7 @@ function SensorSelectionComponent() {
                     selected={null}
                     placeholderText="YYYY-MM-DD"
                     dateFormat="yyyy-MM-dd"
-                    onChange={() => {}}
+                    onChange={() => { }}
                     readOnly
                     onInputClick={showNotReady}
                   />

@@ -4,6 +4,13 @@ import GraphApi from "../../../apis/GaphApi/GraphApi";
 
 import "./EcGraph.css";
 
+
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+
+
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -42,9 +49,9 @@ const phBandsPlugin = {
     const { left, right } = chartArea;
 
     const bands = [
-      { from: 0, to: 5, color: "rgba(255, 99, 132, 0.10)" },  // 0–5
-      { from: 5, to: 8, color: "rgba(255, 206, 86, 0.10)" },  // 5–8
-      { from: 8, to: 14, color: "rgba(75, 192, 192, 0.10)" }, // 8–14
+      { from: 0, to: 5.5, color: "rgba(239,  68,  68, 0.12)" },  // 0–5
+      { from: 5.5, to: 7.5, color: "rgba( 34, 197,  94, 0.12)" },  // 5–8
+      { from: 7.5, to: 14.0, color: "rgba( 59, 130, 246, 0.12)" }, // 8–14
     ];
 
     ctx.save();
@@ -113,6 +120,18 @@ function tsToLabel(ts) {
 
 export default function EcGraph() {
   const username = "jbsy24";
+
+
+  const showNotReady = () => {
+    toast.info("서비스 준비 중입니다.", {
+      position: "bottom-center",
+      autoClose: 2000,
+      hideProgressBar: true,
+      closeOnClick: true,
+      pauseOnHover: false,
+      draggable: false,
+    });
+  };
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
@@ -242,7 +261,7 @@ export default function EcGraph() {
       if (!data.some((v) => v !== null)) continue;
 
       datasets.push({
-        label: `${sn}동 배지 pH`,
+        label: `센서-${sn}`,
         data,
         borderColor: COLORS[sn],
         backgroundColor: "transparent",
@@ -408,8 +427,24 @@ export default function EcGraph() {
       </div>
 
       <div className="graph-dwn-btn-main">
-        <div className="graph-den-btn">다운로드 (CSV File)</div>
+        <div
+          className="graph-den-btn"
+          onClick={showNotReady}
+        >
+          다운로드 (CSV File)
+        </div>
+
+        {/* toast */}
+        <ToastContainer
+          position="top-center"
+          autoClose={2000}
+          hideProgressBar
+          className="toast-center-container"
+          toastClassName="toast-center"
+          bodyClassName="toast-center-body"
+        />
       </div>
+
     </div>
   );
 }
