@@ -15,7 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 function SensorSelectionComponent() {
   const { theme } = useTheme();
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(false);
 
   const showNotReady = () => {
     toast.info("서비스 준비 중입니다.", {
