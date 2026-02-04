@@ -1,5 +1,5 @@
 // src/components/graph/EcGraph.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import GraphApi from "../../../apis/GaphApi/GraphApi";
 
 import {
@@ -30,68 +30,47 @@ ChartJS.register(
  */
 function parseTimestamp(ts) {
   if (!ts || typeof ts !== "string") return null;
-  // "2026-02-03 11:03:44" -> "2026-02-03T11:03:44"
   const iso = ts.replace(" ", "T");
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
 /**
- * Build an hourly series (similar feel to HD graph):
- * - groups by hour key "YYYY-MM-DD HH:00"
- * - keeps LAST non-null EC value inside each hour
- *
- * Returns:
- *  - map: Map(hourKey -> number)
- *  - meta: { firstTimeMs, lastTimeMs } for sorting
+ * Build RAW (non-grouped) EC map:
+ * Map(timestampString -> { t: timeMs, v: value })
+ * Keeps last value for duplicate timestamps.
  */
-function buildHourlyEcMap(rows, sensorNo) {
+function buildEcMap(rows, sensorNo) {
   const field = `soil_ec_${sensorNo}`;
   const m = new Map();
 
-  let first = null;
-  let last = null;
-
   for (const r of rows || []) {
-    const d = parseTimestamp(r?.timestamp);
-    if (!d) continue;
+    const ts = r?.timestamp;
+    const d = parseTimestamp(ts);
+    if (!ts || !d) continue;
 
     const vRaw = r?.[field];
-    const vNum = typeof vRaw === "number" ? vRaw : Number(vRaw);
-
-    // skip null/undefined/NaN
     if (vRaw === null || vRaw === undefined) continue;
-    if (!Number.isFinite(vNum)) continue;
 
-    const y = d.getFullYear();
-    const mo = String(d.getMonth() + 1).padStart(2, "0");
-    const da = String(d.getDate()).padStart(2, "0");
-    const ho = String(d.getHours()).padStart(2, "0");
-    const hourKey = `${y}-${mo}-${da} ${ho}:00`;
+    const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+    if (!Number.isFinite(v)) continue;
 
-    // overwrite => last value in that hour wins
-    m.set(hourKey, vNum);
-
-    const t = d.getTime();
-    if (first === null || t < first) first = t;
-    if (last === null || t > last) last = t;
+    m.set(ts, { t: d.getTime(), v });
   }
 
-  return {
-    map: m,
-    meta: { firstTimeMs: first, lastTimeMs: last },
-  };
+  return m;
 }
 
-function hourKeyToLabel(hourKey) {
-  // hourKey: "YYYY-MM-DD HH:00"
-  const iso = hourKey.replace(" ", "T") + ":00";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return hourKey;
-
-  // show like "11AM", "12PM" (similar to your screenshot)
+/**
+ * Label for x-axis ticks.
+ * (You can change formatting anytime)
+ */
+function tsToLabel(ts) {
+  const d = parseTimestamp(ts);
+  if (!d) return ts;
   return d.toLocaleString(undefined, {
     hour: "numeric",
+    minute: "2-digit",
     hour12: true,
   });
 }
@@ -101,10 +80,15 @@ export default function EcGraph() {
 
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
-  const [seriesMaps, setSeriesMaps] = useState(null); // {1:{map,meta}, ...}
+  const [seriesMaps, setSeriesMaps] = useState(null); // {1: Map, 2: Map, ...}
+
+  // ✅ zoom "scrollbar" (0 = zoom out/full view, 100 = zoom in/max)
+  const [zoomPercent, setZoomPercent] = useState(0);
+
+  const chartRef = useRef(null);
 
   const urls = useMemo(() => {
-    const api = GraphApi(); // IMPORTANT: GraphApi() is a function
+    const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
       { sensorNo: 2, url: api.sensor2 },
@@ -114,6 +98,9 @@ export default function EcGraph() {
     ];
   }, []);
 
+  // -------------------------
+  // Fetch ALL data (raw points)
+  // -------------------------
   useEffect(() => {
     let alive = true;
 
@@ -132,27 +119,23 @@ export default function EcGraph() {
 
             if (!res.ok) {
               const text = await res.text().catch(() => "");
-              throw new Error(
-                `HTTP ${res.status} from ${url}\n${text?.slice(0, 200)}`
-              );
+              throw new Error(`HTTP ${res.status} from ${url}\n${text?.slice(0, 200)}`);
             }
 
-            // Some PHP endpoints sometimes return JSON as string
             const data = await res.json();
-
             if (!Array.isArray(data)) {
               throw new Error(`Unexpected response (not array) from sensor${sensorNo}`);
             }
 
-            const built = buildHourlyEcMap(data, sensorNo);
-            return { sensorNo, built };
+            const map = buildEcMap(data, sensorNo);
+            return { sensorNo, map };
           })
         );
 
         if (!alive) return;
 
         const obj = {};
-        for (const { sensorNo, built } of results) obj[sensorNo] = built;
+        for (const { sensorNo, map } of results) obj[sensorNo] = map;
 
         setSeriesMaps(obj);
       } catch (e) {
@@ -171,85 +154,112 @@ export default function EcGraph() {
     };
   }, [urls, username]);
 
-  // Build UNION labels across all sensors (hour keys), sorted by time.
-  const { labels, datasets, ySuggestedMax } = useMemo(() => {
-    if (!seriesMaps) return { labels: [], datasets: [], ySuggestedMax: 1 };
-
-    const allHourKeysSet = new Set();
-
-    // collect keys
-    for (const sn of [1, 2, 3, 4, 5]) {
-      const m = seriesMaps?.[sn]?.map;
-      if (!m) continue;
-      for (const k of m.keys()) allHourKeysSet.add(k);
+  // --------------------------------------------
+  // Build UNION timeline across sensors (ALL ts)
+  // --------------------------------------------
+  const { timelineTs, labels, datasets, ySuggestedMax } = useMemo(() => {
+    if (!seriesMaps) {
+      return { timelineTs: [], labels: [], datasets: [], ySuggestedMax: 1 };
     }
 
-    // sort by actual time
-    const allHourKeys = Array.from(allHourKeysSet).sort((a, b) => {
-      const da = new Date(a.replace(" ", "T") + ":00").getTime();
-      const db = new Date(b.replace(" ", "T") + ":00").getTime();
-      return da - db;
-    });
+    // union timestamps across all sensors
+    const allTs = new Map(); // ts -> timeMs
+    for (const sn of [1, 2, 3, 4, 5]) {
+      const m = seriesMaps?.[sn];
+      if (!m) continue;
+      for (const [ts, obj] of m.entries()) {
+        allTs.set(ts, obj.t);
+      }
+    }
 
-    // x labels shown to user
-    const labels = allHourKeys.map(hourKeyToLabel);
+    // sort by timeMs
+    const timelineTs = Array.from(allTs.entries())
+      .sort((a, b) => a[1] - b[1])
+      .map(([ts]) => ts);
 
-    // distinct colors per sensor
+    const labels = timelineTs.map(tsToLabel);
+
     const COLORS = {
-      1: "rgb(255, 99, 132)",  // red
-      2: "rgb(54, 162, 235)",  // blue
-      3: "rgb(153, 102, 255)", // purple
-      4: "rgb(75, 192, 192)",  // teal
-      5: "rgb(255, 159, 64)",  // orange
+      1: "rgb(255, 99, 132)",
+      2: "rgb(54, 162, 235)",
+      3: "rgb(153, 102, 255)",
+      4: "rgb(75, 192, 192)",
+      5: "rgb(255, 159, 64)",
     };
 
-    // build datasets, but SKIP sensors that have no values at all
-    const datasets = [];
     let globalMax = 0;
+    const datasets = [];
 
     for (const sn of [1, 2, 3, 4, 5]) {
-      const map = seriesMaps?.[sn]?.map;
-      if (!map) continue;
+      const m = seriesMaps?.[sn];
+      if (!m) continue;
 
-      // map hourKeys -> values (or null)
-      const data = allHourKeys.map((k) => {
-        const v = map.get(k);
-        if (v === undefined) return null;
-        if (Number.isFinite(v)) {
-          if (v > globalMax) globalMax = v;
-          return v;
-        }
-        return null;
+      const data = timelineTs.map((ts) => {
+        const obj = m.get(ts);
+        if (!obj) return null;
+        globalMax = Math.max(globalMax, obj.v);
+        return obj.v;
       });
 
-      // if entire line is null => do not render this dataset
-      const hasAnyValue = data.some((v) => v !== null);
-      if (!hasAnyValue) continue;
+      if (!data.some((v) => v !== null)) continue;
 
       datasets.push({
         label: `${sn}동 배지EC`,
         data,
         borderColor: COLORS[sn],
         backgroundColor: "transparent",
-        borderWidth: 2,
+        borderWidth: 1, // ✅ thinner line
         pointRadius: 0,
+        pointHitRadius: 6,
         tension: 0.25,
-        spanGaps: true, // important: line will continue across missing points
+        spanGaps: true,
       });
     }
 
-    // dynamic y scale suggestion so the line doesn’t get “flattened”
-    const ySuggestedMax = Math.max(0.5, globalMax * 1.2);
-
-    return { labels, datasets, ySuggestedMax };
+    return {
+      timelineTs,
+      labels,
+      datasets,
+      ySuggestedMax: Math.max(0.5, globalMax * 1.2),
+    };
   }, [seriesMaps]);
 
   const chartData = useMemo(() => {
-    return {
-      labels,
-      datasets,
-    };
+    return { labels, datasets };
   }, [labels, datasets]);
+
+  // --------------------------------------------
+  // Zoom logic (single canvas) using slider
+  //   - 0% => full view
+  //   - 100% => most zoomed-in
+  //   - anchored to the RIGHT (latest time)
+  // --------------------------------------------
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart) return;
+
+    const total = labels.length;
+    if (total <= 2) return;
+
+    const maxIndex = total - 1;
+
+    // smallest window at max zoom (show at least 12 points or 5%)
+    const minWindow = Math.max(12, Math.floor(total * 0.05));
+
+    // window shrinks as zoom increases
+    const t = zoomPercent / 100; // 0..1
+    const windowSize = Math.round(total - t * (total - minWindow));
+
+    // anchor to latest data (right side)
+    const minIndex = Math.max(0, maxIndex - windowSize);
+    const maxVisible = maxIndex;
+
+    // CategoryScale accepts numeric min/max (index)
+    chart.options.scales.x.min = minIndex;
+    chart.options.scales.x.max = maxVisible;
+
+    chart.update("none");
+  }, [zoomPercent, labels]);
 
   const options = useMemo(() => {
     return {
@@ -265,17 +275,16 @@ export default function EcGraph() {
             color: "#ffffff",
           },
         },
-        tooltip: {
-          enabled: true,
-        },
+        tooltip: { enabled: true },
       },
       scales: {
         x: {
+          // min/max are controlled by zoom effect above
           ticks: {
             color: "#ffffff",
             maxRotation: 0,
             autoSkip: true,
-            maxTicksLimit: 14, // similar spacing to your screenshot
+            maxTicksLimit: 14,
           },
           grid: { color: "rgba(255,255,255,0.08)" },
         },
@@ -302,27 +311,61 @@ export default function EcGraph() {
 
       <div
         style={{
-          height: "520px",
           background: "#3f4a69",
           borderRadius: "18px",
           padding: "18px",
         }}
       >
-        {loading && <div style={{ color: "#fff" }}>Loading...</div>}
-
-        {!loading && err && (
-          <div style={{ color: "tomato", whiteSpace: "pre-wrap" }}>{err}</div>
-        )}
-
-        {!loading && !err && datasets.length === 0 && (
-          <div style={{ color: "#fff" }}>
-            No EC data found (all sensors are null).
+        {/* ✅ Zoom scrollbar (replaces Reset Zoom button) */}
+        <div style={{ marginBottom: "12px" }}>
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value={zoomPercent}
+            onChange={(e) => setZoomPercent(Number(e.target.value))}
+            style={{
+              width: "100%",
+              height: "10px",
+              borderRadius: "999px",
+              cursor: "pointer",
+              background: "rgba(255,255,255,0.18)",
+              appearance: "none",
+              outline: "none",
+            }}
+          />
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginTop: "6px",
+              fontSize: "12px",
+              color: "rgba(255,255,255,0.8)",
+              userSelect: "none",
+            }}
+          >
+            <span>Zoom Out</span>
+            <span>Zoom In</span>
           </div>
-        )}
+        </div>
 
-        {!loading && !err && datasets.length > 0 && (
-          <Line data={chartData} options={options} />
-        )}
+        <div style={{ height: "520px" }}>
+          {loading && <div style={{ color: "#fff" }}>Loading...</div>}
+
+          {!loading && err && (
+            <div style={{ color: "tomato", whiteSpace: "pre-wrap" }}>{err}</div>
+          )}
+
+          {!loading && !err && datasets.length === 0 && (
+            <div style={{ color: "#fff" }}>
+              No EC data found (all sensors are null).
+            </div>
+          )}
+
+          {!loading && !err && datasets.length > 0 && (
+            <Line ref={chartRef} data={chartData} options={options} />
+          )}
+        </div>
       </div>
     </div>
   );
