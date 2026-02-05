@@ -50,7 +50,7 @@ function parseTimestamp(ts) {
  * Keeps last value for duplicate timestamps.
  */
 function buildPhMap(rows, sensorNo) {
-  const field = `envin_temp_${sensorNo}`;
+  const field = `temp_s${sensorNo}`;
   const m = new Map();
 
   for (const r of rows || []) {
@@ -84,7 +84,7 @@ function tsToLabel(ts) {
 }
 
 export default function TempGraph() {
-  const username = "jbsy24";
+  const username = "tree";
 
   const { theme } = useTheme();
 
@@ -113,72 +113,97 @@ export default function TempGraph() {
     const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
-      { sensorNo: 2, url: api.sensor2 },
-      { sensorNo: 3, url: api.sensor3 },
-      { sensorNo: 4, url: api.sensor4 },
-      { sensorNo: 5, url: api.sensor5 },
     ];
   }, []);
 
   // -------------------------
   // Fetch ALL data (raw points)
   // -------------------------
-  useEffect(() => {
-    let alive = true;
+// -------------------------
+// SSE: stream live rows and update seriesMaps
+// (keeps all your other logic unchanged)
+// -------------------------
+useEffect(() => {
+  let closed = false;
 
-    async function fetchAll() {
-      setLoading(true);
-      setErr("");
+  setLoading(true);
+  setErr("");
 
-      try {
-        const results = await Promise.all(
-          urls.map(async ({ sensorNo, url }) => {
-            const res = await fetch(url, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username }),
-            });
+  // initialize maps once (same structure your later code expects)
+  const initial = {};
+  for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+  setSeriesMaps(initial);
 
-            if (!res.ok) {
-              const text = await res.text().catch(() => "");
-              throw new Error(
-                `HTTP ${res.status} from ${url}\n${text?.slice(0, 200)}`
-              );
-            }
+  // NOTE: api.sensor1 must be the SSE endpoint (t_s1_stream.php)
+  // If your GraphApi() returns get_sensor_data.php, this will NOT work.
+  const sseUrl = `${urls[0].url}?lastId=0`;
 
-            const data = await res.json();
-            if (!Array.isArray(data)) {
-              throw new Error(
-                `Unexpected response (not array) from sensor${sensorNo}`
-              );
-            }
+  const es = new EventSource(sseUrl);
 
-            const map = buildPhMap(data, sensorNo);
-            return { sensorNo, map };
-          })
-        );
+  es.addEventListener("rows", (ev) => {
+    if (closed) return;
 
-        if (!alive) return;
+    try {
+      const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
+      const rows = payload?.rows || [];
+      if (!Array.isArray(rows) || rows.length === 0) return;
 
-        const obj = {};
-        for (const { sensorNo, map } of results) obj[sensorNo] = map;
+      // sensorNo is 1 in your case
+      const sensorNo = urls[0].sensorNo;
 
-        setSeriesMaps(obj);
-      } catch (e) {
-        if (!alive) return;
-        setErr(e?.message || "Failed to fetch");
-        setSeriesMaps(null);
-      } finally {
-        if (!alive) return;
-        setLoading(false);
-      }
+      setSeriesMaps((prev) => {
+        const next = { ...(prev || {}) };
+        const oldMap = next[sensorNo] || new Map();
+        const newMap = new Map(oldMap);
+
+        // reuse your existing logic to map timestamp -> {t, v}
+        // but for streaming we add only incoming rows
+        const field = `temp_s${sensorNo}`;
+
+        for (const r of rows) {
+          const ts = r?.timestamp;
+          const d = parseTimestamp(ts);
+          if (!ts || !d) continue;
+
+          const vRaw = r?.[field];
+          if (vRaw === null || vRaw === undefined) continue;
+
+          const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+          if (!Number.isFinite(v)) continue;
+
+          newMap.set(ts, { t: d.getTime(), v });
+        }
+
+        next[sensorNo] = newMap;
+        return next;
+      });
+
+      setLoading(false);
+    } catch (e) {
+      setErr(e?.message || "Failed to parse SSE data");
+      setLoading(false);
     }
+  });
 
-    fetchAll();
-    return () => {
-      alive = false;
-    };
-  }, [urls, username]);
+  es.addEventListener("ping", () => {
+    // ignore keep-alive pings
+    if (!closed) setLoading(false);
+  });
+
+  es.onerror = () => {
+    if (closed) return;
+    setErr("SSE disconnected (check backend / CORS / HTTPS)");
+    setLoading(false);
+    // You can keep it open or close; closing prevents endless error spam
+    es.close();
+  };
+
+  return () => {
+    closed = true;
+    es.close();
+  };
+}, [urls]);
+
 
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
