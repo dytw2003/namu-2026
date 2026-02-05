@@ -88,7 +88,7 @@ function parseTimestamp(ts) {
  * Keeps last value for duplicate timestamps.
  */
 function buildPhMap(rows, sensorNo) {
-  const field = `soil_ec_${sensorNo}`;
+  const field = `ec_s{sensorNo}`;
   const m = new Map();
 
   for (const r of rows || []) {
@@ -151,10 +151,10 @@ export default function EcGraph() {
     const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
-      { sensorNo: 2, url: api.sensor2 },
-      { sensorNo: 3, url: api.sensor3 },
-      { sensorNo: 4, url: api.sensor4 },
-      { sensorNo: 5, url: api.sensor5 },
+      // { sensorNo: 2, url: api.sensor2 },
+      // { sensorNo: 3, url: api.sensor3 },
+      // { sensorNo: 4, url: api.sensor4 },
+      // { sensorNo: 5, url: api.sensor5 },
     ];
   }, []);
 
@@ -162,61 +162,85 @@ export default function EcGraph() {
   // Fetch ALL data (raw points)
   // -------------------------
   useEffect(() => {
-    let alive = true;
+    let closed = false;
 
-    async function fetchAll() {
-      setLoading(true);
-      setErr("");
+    setLoading(true);
+    setErr("");
+
+    // initialize maps once (same structure your later code expects)
+    const initial = {};
+    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+    setSeriesMaps(initial);
+
+    // NOTE: api.sensor1 must be the SSE endpoint (t_s1_stream.php)
+    // If your GraphApi() returns get_sensor_data.php, this will NOT work.
+    const sseUrl = `${urls[0].url}?lastId=0`;
+
+    const es = new EventSource(sseUrl);
+
+    es.addEventListener("rows", (ev) => {
+      if (closed) return;
 
       try {
-        const results = await Promise.all(
-          urls.map(async ({ sensorNo, url }) => {
-            const res = await fetch(url, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ username }),
-            });
+        const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
+        const rows = payload?.rows || [];
+        if (!Array.isArray(rows) || rows.length === 0) return;
 
-            if (!res.ok) {
-              const text = await res.text().catch(() => "");
-              throw new Error(
-                `HTTP ${res.status} from ${url}\n${text?.slice(0, 200)}`
-              );
-            }
+        // sensorNo is 1 in your case
+        const sensorNo = urls[0].sensorNo;
 
-            const data = await res.json();
-            if (!Array.isArray(data)) {
-              throw new Error(
-                `Unexpected response (not array) from sensor${sensorNo}`
-              );
-            }
+        setSeriesMaps((prev) => {
+          const next = { ...(prev || {}) };
+          const oldMap = next[sensorNo] || new Map();
+          const newMap = new Map(oldMap);
 
-            const map = buildPhMap(data, sensorNo);
-            return { sensorNo, map };
-          })
-        );
+          // reuse your existing logic to map timestamp -> {t, v}
+          // but for streaming we add only incoming rows
+          const field = `ec_s${sensorNo}`;
 
-        if (!alive) return;
+          for (const r of rows) {
+            const ts = r?.timestamp;
+            const d = parseTimestamp(ts);
+            if (!ts || !d) continue;
 
-        const obj = {};
-        for (const { sensorNo, map } of results) obj[sensorNo] = map;
+            const vRaw = r?.[field];
+            if (vRaw === null || vRaw === undefined) continue;
 
-        setSeriesMaps(obj);
+            const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+            if (!Number.isFinite(v)) continue;
+
+            newMap.set(ts, { t: d.getTime(), v });
+          }
+
+          next[sensorNo] = newMap;
+          return next;
+        });
+
+        setLoading(false);
       } catch (e) {
-        if (!alive) return;
-        setErr(e?.message || "Failed to fetch");
-        setSeriesMaps(null);
-      } finally {
-        if (!alive) return;
+        setErr(e?.message || "Failed to parse SSE data");
         setLoading(false);
       }
-    }
+    });
 
-    fetchAll();
-    return () => {
-      alive = false;
+    es.addEventListener("ping", () => {
+      // ignore keep-alive pings
+      if (!closed) setLoading(false);
+    });
+
+    es.onerror = () => {
+      if (closed) return;
+      setErr("SSE disconnected (check backend / CORS / HTTPS)");
+      setLoading(false);
+      // You can keep it open or close; closing prevents endless error spam
+      es.close();
     };
-  }, [urls, username]);
+
+    return () => {
+      closed = true;
+      es.close();
+    };
+  }, [urls]);
 
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
@@ -317,91 +341,91 @@ export default function EcGraph() {
     chart.update("none");
   }, [zoomPercent, labels]);
 
- const options = useMemo(() => {
-  const isDark = theme === "dark";
+  const options = useMemo(() => {
+    const isDark = theme === "dark";
 
-  const tickColor = isDark ? "#ffffff" : "#111827";
-  const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
+    const tickColor = isDark ? "#ffffff" : "#111827";
+    const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
 
-  const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
-  const tooltipTitle = isDark ? "#ffffff" : "#111827";
-  const tooltipBody = isDark ? "#ffffff" : "#111827";
-  const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
+    const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
+    const tooltipTitle = isDark ? "#ffffff" : "#111827";
+    const tooltipBody = isDark ? "#ffffff" : "#111827";
+    const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
 
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
 
-    interaction: {
-      mode: "nearest",
-      axis: "x",
-      intersect: false,
-    },
-
-    plugins: {
-      legend: {
-        position: "top",
-        labels: {
-          boxWidth: 24,
-          boxHeight: 10,
-          color: tickColor,
-        },
+      interaction: {
+        mode: "nearest",
+        axis: "x",
+        intersect: false,
       },
-      tooltip: {
-        enabled: true,
-        displayColors: true,
-        padding: 10,
-        backgroundColor: tooltipBg,
-        titleColor: tooltipTitle,
-        bodyColor: tooltipBody,
-        borderColor: tooltipBorder,
-        borderWidth: 1,
-        callbacks: {
-          title: (items) => {
-            if (!items?.length) return "";
-            return labels[items[0].dataIndex] || "";
-          },
-          label: (ctx) => {
-            const v = ctx.raw;
-            if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
-            return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+
+      plugins: {
+        legend: {
+          position: "top",
+          labels: {
+            boxWidth: 24,
+            boxHeight: 10,
+            color: tickColor,
           },
         },
+        tooltip: {
+          enabled: true,
+          displayColors: true,
+          padding: 10,
+          backgroundColor: tooltipBg,
+          titleColor: tooltipTitle,
+          bodyColor: tooltipBody,
+          borderColor: tooltipBorder,
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => {
+              if (!items?.length) return "";
+              return labels[items[0].dataIndex] || "";
+            },
+            label: (ctx) => {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
+              return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+            },
+          },
+        },
       },
-    },
 
-    scales: {
-      x: {
-        ticks: {
-          color: tickColor,
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 14,
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+          },
+          grid: { color: gridColor },
         },
-        grid: { color: gridColor },
+        y: {
+          min: 0,
+          max: 1.6,
+          ticks: {
+            color: tickColor,
+            stepSize: 0.2,
+          },
+          grid: { color: gridColor },
+          title: {
+            display: true,
+            text: "EC(ds/m)",
+            color: tickColor,
+          },
+        },
       },
-      y: {
-        min: 0,
-        max: 1.6,
-        ticks: {
-          color: tickColor,
-          stepSize: 0.2,
-        },
-        grid: { color: gridColor },
-        title: {
-          display: true,
-          text: "EC(ds/m)",
-          color: tickColor,
-        },
-      },
-    },
-  };
-}, [labels, theme]);
+    };
+  }, [labels, theme]);
 
 
   return (
-    <div className= {`ec-page ${theme}`}>
-      <div className= {`ec-card ${theme}`}>
+    <div className={`ec-page ${theme}`}>
+      <div className={`ec-card ${theme}`}>
         {/* Zoom */}
         <div className="ec-zoom-wrap">
           <input
@@ -426,7 +450,7 @@ export default function EcGraph() {
           {!loading && err && <div className="ec-msg ec-msg--err">{err}</div>}
 
           {!loading && !err && datasets.length === 0 && (
-            <div className="ec-msg">No pH data found (all sensors are null).</div>
+            <div className="ec-msg">No data</div>
           )}
 
           {!loading && !err && datasets.length > 0 && (
@@ -434,7 +458,7 @@ export default function EcGraph() {
               ref={chartRef}
               data={chartData}
               options={options}
-              plugins={[phBandsPlugin]}
+             
             />
           )}
         </div>
