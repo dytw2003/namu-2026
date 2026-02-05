@@ -1,6 +1,14 @@
+html.dark {
+  background-color: #222735;
+}
+
+html.light {
+  background-color: #F7F4E8;
+}
+
 .sensors-grid {
   display: grid;
-  grid-template-columns: 1fr; /* ✅ mobile default */
+  grid-template-columns: 1fr; 
   gap: 0.22rem;
   padding: 0.1rem;
 }

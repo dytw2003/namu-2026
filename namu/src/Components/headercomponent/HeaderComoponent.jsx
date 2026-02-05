@@ -6,14 +6,31 @@ import { FiSun, FiMoon, FiLogOut } from "react-icons/fi";
 import logoIconDark from "../../assets/adas-logo-dark.svg";
 import logoIconLight from "../../assets/logo-light.svg";
 
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import "./HeaderComponent.css";
+
 
 
 import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 
+import { UserContext } from "../Auth/UserContext";
+import { useContext } from "react";
+
 function HeaderComoponent() {
   const { theme, toggleTheme } = useTheme();
+
+
+  // ===========logout========
+  const navigate = useNavigate();
+  const { setUser } = useContext(UserContext);
+
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("refresh_token");
+    setUser(null);
+
+    navigate("/", { replace: true });
+  };
 
   return (
     <div className={`header ${theme}`}>
@@ -22,7 +39,7 @@ function HeaderComoponent() {
       <div className="header-brand">
         <div className="header-logo-outer">
           <div className="header-logo">
-            <img src={theme === "dark" ? logoIconDark : logoIconLight } alt="logo" />
+            <img src={theme === "dark" ? logoIconDark : logoIconLight} alt="logo" />
           </div>
         </div>
         <div className="header-farmName">아다스주식회사</div>
@@ -59,9 +76,11 @@ function HeaderComoponent() {
           </span>
         </button>
 
-        <button className="header-logoutBtn" type="button">
+        <button className="header-logoutBtn" type="button"
+          onClick={handleLogout}
+        >
           <span className="logout-text">로그아웃</span>
-       <FiLogOut className={`logout-ico ${theme}`} aria-hidden="true" />
+          <FiLogOut className={`logout-ico ${theme}`} aria-hidden="true" />
         </button>
       </div>
     </div>

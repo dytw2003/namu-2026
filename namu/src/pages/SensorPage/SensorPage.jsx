@@ -7,7 +7,7 @@ import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 import { useMqtt } from "../../providers/MqttProvider/MqttProvider";
 
 function SensorPage() {
-  const sensors = Array.from({ length: 50 }, (_, i) => i + 1);
+  const sensors = Array.from({ length: 1 }, (_, i) => i + 1);
 
   const { theme } = useTheme();
 

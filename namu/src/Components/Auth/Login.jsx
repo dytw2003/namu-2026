@@ -240,11 +240,11 @@ function Login() {
               src={
                 theme === "dark"
                   ? !isChecked
-                    ? circleunticklight
-                    : circletickedlight
+                    ?  circletickeddark
+                    :  circleuntickdark
                   : !isChecked
-                  ? circletickeddark
-                  : circleuntickdark
+                  ?  circletickedlight
+                  : circleunticklight
               }
               alt="remember"
               id="stayLoggedIn"
