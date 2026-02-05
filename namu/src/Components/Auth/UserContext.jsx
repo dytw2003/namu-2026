@@ -3,21 +3,23 @@ import React, { createContext, useEffect, useState } from "react";
 
 export const UserContext = createContext(null);
 
+const TOKEN_KEY = "agr_access_token"; // ✅ CHANGED (was "access_token")
+
 export function UserProvider({ children }) {
   const [user, setUser] = useState(null);
 
-  // Optional: on refresh, restore user from token if exists
+  // ✅ On refresh, restore user from AGR token only
   useEffect(() => {
-    const token = localStorage.getItem("access_token");
+    const token = localStorage.getItem(TOKEN_KEY); // ✅ CHANGED
     if (token && !user) {
-      // If you want, decode and set username here.
-      // For now just mark authed.
+      // optional: decode token and set real username
       setUser({ username: "logged_in" });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Optional: you referenced checkSession in Login, so provide it
-  const checkSession = () => !!localStorage.getItem("access_token");
+  // ✅ checkSession must also use AGR token
+  const checkSession = () => !!localStorage.getItem(TOKEN_KEY); // ✅ CHANGED
 
   return (
     <UserContext.Provider value={{ user, setUser, checkSession }}>

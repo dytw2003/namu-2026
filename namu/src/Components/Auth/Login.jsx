@@ -29,11 +29,11 @@ import passwronglight from "../../assets/passwronglight.svg";
 
 function Login() {
 
-    const { theme } = useTheme()
+  const { theme } = useTheme()
 
 
   const originalNum = 11;
-  
+
   const { user, setUser, checkSession } = useContext(UserContext);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -47,14 +47,14 @@ function Login() {
   // const [isChecked, setIsChecked] = useState(false);
 
   const [isChecked, setIsChecked] = useState(
-    localStorage.getItem("rememberMe") === ""
+    localStorage.getItem("agr_rememberMe") === "true"
   );
 
 
 
 
- 
-  
+
+
 
   useEffect(() => {
     const resetScroll = () => {
@@ -65,29 +65,29 @@ function Login() {
         void el.offsetWidth;
         el.style.animation = 'scrollAnimation 55s linear infinite';
       }
-  
+
       // ✅ Remove all .hovered classes on touchend (zoom fix)
       const hoveredEls = document.querySelectorAll('.login-footer-company-firstexp.hovered');
       hoveredEls.forEach((el) => el.classList.remove('hovered'));
     };
-  
+
     document.addEventListener('touchend', resetScroll);
     return () => {
       document.removeEventListener('touchend', resetScroll);
     };
   }, []);
-  
-  
 
- 
+
+
+
 
   useEffect(() => {
-   
-    const savedUsername = localStorage.getItem("savedUsername");
-    const savedPassword = localStorage.getItem("savedPassword");
-    const rememberMe = localStorage.getItem("rememberMe") === "true";
 
-    setIsChecked(rememberMe); // ✅ Ensure the checkbox state is updated
+    const savedUsername = localStorage.getItem("agr_savedUsername");
+    const savedPassword = localStorage.getItem("agr_savedPassword");
+    const rememberMe = localStorage.getItem("agr_rememberMe") === "true";
+
+    setIsChecked(rememberMe);
 
     if (rememberMe && savedUsername && savedPassword) {
       setUsername(savedUsername);
@@ -106,10 +106,12 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (user) {
-      navigate("/home");
-    }
-  }, [user, navigate]);
+  const token = localStorage.getItem("agr_access_token");
+  if (user && token) {
+    navigate("/agrhome", { replace: true });
+  }
+}, [user, navigate]);
+
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -118,21 +120,21 @@ function Login() {
     setWrongCredentials(false);
     setIsButtonActive(true); // Activate button when clicked
 
-    if (!username || !password || password == " ") {
-      if (!password) setWrongCredentials(true);
+    if (!username || !password || password.trim() === "") {
+      setIsPasswordMissing(true);
       return;
     }
 
     try {
       const response = await loginApi(username, password);
       if (response.access_token) {
-        localStorage.setItem("access_token", response.access_token);
-        localStorage.setItem("refresh_token", response.refresh_token);
-        localStorage.setItem("name_kr",response.name_kr)
-    
+        localStorage.setItem("agr_access_token", response.access_token);
+        localStorage.setItem("agr_refresh_token", response.refresh_token);
+        localStorage.setItem("agr_name_kr", response.name_kr)
+
 
         const maxhouse = response.maxhouse ?? originalNum;
-        
+
         const decodedToken = jwtDecode(response.access_token);
 
         // ✅ Use 'user_id' instead of 'username'
@@ -142,15 +144,15 @@ function Login() {
           setUser({ username: extractedUsername });
 
           if (isChecked) {
-            localStorage.setItem("savedUsername", username);
-            localStorage.setItem("savedPassword", password);
-            localStorage.setItem("rememberMe", "true");
+            localStorage.setItem("agr_savedUsername", username);
+            localStorage.setItem("agr_savedPassword", password);
+            localStorage.setItem("agr_rememberMe", "true");
           } else {
-            localStorage.removeItem("savedUsername");
-            localStorage.removeItem("savedPassword");
-            localStorage.removeItem("rememberMe");
+            localStorage.removeItem("agr_savedUsername");
+            localStorage.removeItem("agr_savedPassword");
+            localStorage.removeItem("agr_rememberMe");
           }
-          navigate("/home");
+          navigate("/agrhome");
         } else {
           console.error("Username field not found in token!");
         }
@@ -163,19 +165,18 @@ function Login() {
     }
   };
 
-  
-
- 
- 
 
 
- 
+
+
+
+
+
 
   return (
     <div
-      className={`loginContainer ${
-        theme === "dark" ? "dark-mode" : "light-mode"
-      }`}
+      className={`loginContainer ${theme === "dark" ? "dark-mode" : "light-mode"
+        }`}
     >
       <div className="logoAndName">
         {theme === "dark" ? (
@@ -215,9 +216,8 @@ function Login() {
                 type="password"
                 id="password"
                 // className='passwordInput'
-                className={`passwordInput ${
-                  isPasswordMissing ? "passwordInputError" : ""
-                }`}
+                className={`passwordInput ${isPasswordMissing ? "passwordInputError" : ""
+                  }`}
                 placeholder="비밀번호"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -236,11 +236,11 @@ function Login() {
               src={
                 theme === "dark"
                   ? !isChecked
-                    ?   circleuntickdark
-                    :  circletickeddark
+                    ? circleuntickdark
+                    : circletickeddark
                   : !isChecked
-                  ?  circleunticklight
-                  :  circletickedlight
+                    ? circleunticklight
+                    : circletickedlight
               }
               alt="remember"
               id="stayLoggedIn"
@@ -285,8 +285,8 @@ function Login() {
                     ? "#3EC696"
                     : "#CDD2E380"
                   : isButtonActive
-                  ? "#1C625D"
-                  : "#00000080",
+                    ? "#1C625D"
+                    : "#00000080",
             }}
           >
             로그인
@@ -294,8 +294,8 @@ function Login() {
         </div>
       </div>
 
-      
-     
+
+
     </div>
   );
 }

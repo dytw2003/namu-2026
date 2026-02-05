@@ -12,7 +12,7 @@ import Login from "./Components/Auth/Login";
 import AuthLayout from "./layouts/AuthLayout/AuthLayout";
 
 // ✅ simple auth check (you can replace this later with Context)
-const isAuthed = () => !!localStorage.getItem("access_token");
+const isAuthed = () => !!localStorage.getItem("agr_access_token");
 
 
 
@@ -23,13 +23,13 @@ function PrivateRoute({ children }) {
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/tree">
       <Routes>
         {/* ✅ redirect root to login */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<Navigate to="/agrlogin" replace />} />
 
         <Route element={<AuthLayout />}>
-          <Route path="/login" element={<Login />} />
+          <Route path="/agrlogin" element={<Login />} />
         </Route>
 
         {/* ✅ home (protected) */}
@@ -40,7 +40,7 @@ function App() {
             </PrivateRoute>
           }
         >
-          <Route path="/home" element={<SensorPage />} />
+          <Route path="/agrhome" element={<SensorPage />} />
         </Route>
 
         {/* ✅ graph (protected) */}
@@ -51,7 +51,7 @@ function App() {
             </PrivateRoute>
           }
         >
-          <Route path="/graph" element={<GraphPage />} />
+          <Route path="/agrgraph" element={<GraphPage />} />
         </Route>
 
         {/* ✅ fallback */}

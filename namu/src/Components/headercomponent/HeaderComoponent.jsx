@@ -23,7 +23,7 @@ function HeaderComoponent() {
   const [farmName, setFarmName] = useState("아다스(주)");
   
 useEffect(() => {
-  setFarmName(localStorage.getItem("name_kr") ||"아다스(주)");
+  setFarmName(localStorage.getItem("aggr_name_kr") ||"아다스(주)");
 }, []);
 
 
@@ -54,11 +54,11 @@ useEffect(() => {
 
       {/* Center */}
       <nav className="header-nav">
-        <NavLink to="/home" end className="nav-item-home">
+        <NavLink to="/agrhome" end className="nav-item-home">
           홈
         </NavLink>
 
-        <NavLink to="/graph" end className="nav-item-graph">
+        <NavLink to="/agrgraph" end className="nav-item-graph">
           통계 분석
         </NavLink>
       </nav>
