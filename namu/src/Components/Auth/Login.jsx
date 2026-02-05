@@ -129,14 +129,10 @@ function Login() {
         localStorage.setItem("access_token", response.access_token);
         localStorage.setItem("refresh_token", response.refresh_token);
         localStorage.setItem("name_kr",response.name_kr)
-        localStorage.setItem("housetype",response.housetype)
+    
 
         const maxhouse = response.maxhouse ?? originalNum;
         
-        if (maxhouse) {
-          localStorage.setItem("maxhouse", maxhouse);
-        }
-
         const decodedToken = jwtDecode(response.access_token);
 
         // ✅ Use 'user_id' instead of 'username'
@@ -240,11 +236,11 @@ function Login() {
               src={
                 theme === "dark"
                   ? !isChecked
-                    ?  circletickeddark
-                    :  circleuntickdark
+                    ?   circleuntickdark
+                    :  circletickeddark
                   : !isChecked
-                  ?  circletickedlight
-                  : circleunticklight
+                  ?  circleunticklight
+                  :  circletickedlight
               }
               alt="remember"
               id="stayLoggedIn"

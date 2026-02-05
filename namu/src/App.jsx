@@ -9,8 +9,12 @@ import GraphPage from "./pages/GraphPage/GraphPage";
 
 import Login from "./Components/Auth/Login";
 
+import AuthLayout from "./layouts/AuthLayout/AuthLayout";
+
 // ✅ simple auth check (you can replace this later with Context)
 const isAuthed = () => !!localStorage.getItem("access_token");
+
+
 
 // ✅ protect routes
 function PrivateRoute({ children }) {
@@ -24,8 +28,9 @@ function App() {
         {/* ✅ redirect root to login */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
-        {/* ✅ login route */}
-        <Route path="/login" element={<Login />} />
+        <Route element={<AuthLayout />}>
+          <Route path="/login" element={<Login />} />
+        </Route>
 
         {/* ✅ home (protected) */}
         <Route
