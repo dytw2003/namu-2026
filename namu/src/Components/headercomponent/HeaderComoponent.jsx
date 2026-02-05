@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect} from "react";
 
 import { FiSun, FiMoon, FiLogOut } from "react-icons/fi";
 
@@ -18,6 +18,13 @@ import { useContext } from "react";
 
 function HeaderComoponent() {
   const { theme, toggleTheme } = useTheme();
+
+
+  const [farmName, setFarmName] = useState("아다스(주)");
+  
+useEffect(() => {
+  setFarmName(localStorage.getItem("name_kr") ||"아다스(주)");
+}, []);
 
 
   // ===========logout========
@@ -42,7 +49,7 @@ function HeaderComoponent() {
             <img src={theme === "dark" ? logoIconDark : logoIconLight} alt="logo" />
           </div>
         </div>
-        <div className="header-farmName">아다스주식회사</div>
+        <div className="header-farmName">{farmName}</div>
       </div>
 
       {/* Center */}
