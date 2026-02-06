@@ -151,10 +151,9 @@ export default function EcGraph() {
     const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
-      // { sensorNo: 2, url: api.sensor2 },
-      // { sensorNo: 3, url: api.sensor3 },
-      // { sensorNo: 4, url: api.sensor4 },
-      // { sensorNo: 5, url: api.sensor5 },
+      { sensorNo: 2, url: api.sensor2 },
+      { sensorNo: 3, url: api.sensor3 },
+
     ];
   }, []);
 
@@ -167,80 +166,75 @@ export default function EcGraph() {
     setLoading(true);
     setErr("");
 
-    // initialize maps once (same structure your later code expects)
+    // init maps for all sensors in urls
     const initial = {};
     for (const { sensorNo } of urls) initial[sensorNo] = new Map();
     setSeriesMaps(initial);
 
-    // NOTE: api.sensor1 must be the SSE endpoint (t_s1_stream.php)
-    // If your GraphApi() returns get_sensor_data.php, this will NOT work.
-    const sseUrl = `${urls[0].url}?lastId=0`;
+    // open one EventSource per sensor
+    const sources = urls.map(({ sensorNo, url }) => {
+      const es = new EventSource(`${url}?lastId=0`);
 
-    const es = new EventSource(sseUrl);
+      es.addEventListener("rows", (ev) => {
+        if (closed) return;
 
-    es.addEventListener("rows", (ev) => {
-      if (closed) return;
+        try {
+          const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
+          const rows = payload?.rows || [];
+          if (!Array.isArray(rows) || rows.length === 0) return;
 
-      try {
-        const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
-        const rows = payload?.rows || [];
-        if (!Array.isArray(rows) || rows.length === 0) return;
+          setSeriesMaps((prev) => {
+            const next = { ...(prev || {}) };
+            const oldMap = next[sensorNo] || new Map();
+            const newMap = new Map(oldMap);
 
-        // sensorNo is 1 in your case
-        const sensorNo = urls[0].sensorNo;
+            const field = `ph_s${sensorNo}`; // ✅ must match backend keys: ph_s1/ph_s2/ph_s3
 
-        setSeriesMaps((prev) => {
-          const next = { ...(prev || {}) };
-          const oldMap = next[sensorNo] || new Map();
-          const newMap = new Map(oldMap);
+            for (const r of rows) {
+              const ts = r?.timestamp;
+              const d = parseTimestamp(ts);
+              if (!ts || !d) continue;
 
-          // reuse your existing logic to map timestamp -> {t, v}
-          // but for streaming we add only incoming rows
-          const field = `ec_s${sensorNo}`;
+              const vRaw = r?.[field];
+              if (vRaw === null || vRaw === undefined) continue;
 
-          for (const r of rows) {
-            const ts = r?.timestamp;
-            const d = parseTimestamp(ts);
-            if (!ts || !d) continue;
+              const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+              if (!Number.isFinite(v)) continue;
 
-            const vRaw = r?.[field];
-            if (vRaw === null || vRaw === undefined) continue;
+              newMap.set(ts, { t: d.getTime(), v });
+            }
 
-            const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
-            if (!Number.isFinite(v)) continue;
+            next[sensorNo] = newMap;
+            return next;
+          });
 
-            newMap.set(ts, { t: d.getTime(), v });
-          }
+          setLoading(false);
+        } catch (e) {
+          setErr(e?.message || "Failed to parse SSE data");
+          setLoading(false);
+        }
+      });
 
-          next[sensorNo] = newMap;
-          return next;
-        });
+      es.addEventListener("ping", () => {
+        if (!closed) setLoading(false);
+      });
 
+      es.onerror = () => {
+        if (closed) return;
+        setErr(`SSE disconnected for sensor ${sensorNo}`);
         setLoading(false);
-      } catch (e) {
-        setErr(e?.message || "Failed to parse SSE data");
-        setLoading(false);
-      }
-    });
+        es.close();
+      };
 
-    es.addEventListener("ping", () => {
-      // ignore keep-alive pings
-      if (!closed) setLoading(false);
+      return es;
     });
-
-    es.onerror = () => {
-      if (closed) return;
-      setErr("SSE disconnected (check backend / CORS / HTTPS)");
-      setLoading(false);
-      // You can keep it open or close; closing prevents endless error spam
-      es.close();
-    };
 
     return () => {
       closed = true;
-      es.close();
+      sources.forEach((es) => es.close());
     };
   }, [urls]);
+
 
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
@@ -358,7 +352,7 @@ export default function EcGraph() {
 
       interaction: {
         mode: "nearest",
-        axis: "x",
+        axis: "xy",
         intersect: false,
       },
 
@@ -373,6 +367,8 @@ export default function EcGraph() {
         },
         tooltip: {
           enabled: true,
+          mode: "nearest",
+          intersect: false,
           displayColors: true,
           padding: 10,
           backgroundColor: tooltipBg,
@@ -458,7 +454,7 @@ export default function EcGraph() {
               ref={chartRef}
               data={chartData}
               options={options}
-             
+
             />
           )}
         </div>

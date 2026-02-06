@@ -113,32 +113,30 @@ export default function HUmiGraph() {
     const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
-      // { sensorNo: 2, url: api.sensor2 },
-      // { sensorNo: 3, url: api.sensor3 },
-      // { sensorNo: 4, url: api.sensor4 },
-      // { sensorNo: 5, url: api.sensor5 },
+      { sensorNo: 2, url: api.sensor2 },
+      { sensorNo: 3, url: api.sensor3 },
+      
     ];
   }, []);
 
   // -------------------------
   // Fetch ALL data (raw points)
   // -------------------------
+
   useEffect(() => {
-    let closed = false;
+  let closed = false;
 
-    setLoading(true);
-    setErr("");
+  setLoading(true);
+  setErr("");
 
-    // initialize maps once (same structure your later code expects)
-    const initial = {};
-    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
-    setSeriesMaps(initial);
+  // init maps for all sensors in urls
+  const initial = {};
+  for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+  setSeriesMaps(initial);
 
-    // NOTE: api.sensor1 must be the SSE endpoint (t_s1_stream.php)
-    // If your GraphApi() returns get_sensor_data.php, this will NOT work.
-    const sseUrl = `${urls[0].url}?lastId=0`;
-
-    const es = new EventSource(sseUrl);
+  // open one EventSource per sensor
+  const sources = urls.map(({ sensorNo, url }) => {
+    const es = new EventSource(`${url}?lastId=0`);
 
     es.addEventListener("rows", (ev) => {
       if (closed) return;
@@ -148,17 +146,12 @@ export default function HUmiGraph() {
         const rows = payload?.rows || [];
         if (!Array.isArray(rows) || rows.length === 0) return;
 
-        // sensorNo is 1 in your case
-        const sensorNo = urls[0].sensorNo;
-
         setSeriesMaps((prev) => {
           const next = { ...(prev || {}) };
           const oldMap = next[sensorNo] || new Map();
           const newMap = new Map(oldMap);
 
-          // reuse your existing logic to map timestamp -> {t, v}
-          // but for streaming we add only incoming rows
-          const field = `temp_s${sensorNo}`;
+          const field = `humi_s${sensorNo}`; // ✅ must match backend keys: ph_s1/ph_s2/ph_s3
 
           for (const r of rows) {
             const ts = r?.timestamp;
@@ -186,23 +179,25 @@ export default function HUmiGraph() {
     });
 
     es.addEventListener("ping", () => {
-      // ignore keep-alive pings
       if (!closed) setLoading(false);
     });
 
     es.onerror = () => {
       if (closed) return;
-      setErr("SSE disconnected (check backend / CORS / HTTPS)");
+      setErr(`SSE disconnected for sensor ${sensorNo}`);
       setLoading(false);
-      // You can keep it open or close; closing prevents endless error spam
       es.close();
     };
 
-    return () => {
-      closed = true;
-      es.close();
-    };
-  }, [urls]);
+    return es;
+  });
+
+  return () => {
+    closed = true;
+    sources.forEach((es) => es.close());
+  };
+}, [urls]);
+
 
 
   // --------------------------------------------
@@ -320,8 +315,8 @@ export default function HUmiGraph() {
       maintainAspectRatio: false,
 
       interaction: {
-        mode: "nearest",
-        axis: "x",
+       mode: "nearest",
+        axis: "xy",
         intersect: false,
       },
 
@@ -336,6 +331,8 @@ export default function HUmiGraph() {
         },
         tooltip: {
           enabled: true,
+          mode: "nearest",
+          intersect: false,
           displayColors: true,
           padding: 10,
           backgroundColor: tooltipBg,

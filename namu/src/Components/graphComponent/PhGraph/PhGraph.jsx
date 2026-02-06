@@ -122,7 +122,7 @@ function tsToLabel(ts) {
 }
 
 export default function PhGraph() {
- const username = "tree";
+  const username = "tree";
 
   const { theme } = useTheme();
 
@@ -151,96 +151,89 @@ export default function PhGraph() {
     const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
-      // { sensorNo: 2, url: api.sensor2 },
-      // { sensorNo: 3, url: api.sensor3 },
-      // { sensorNo: 4, url: api.sensor4 },
-      // { sensorNo: 5, url: api.sensor5 },
+      { sensorNo: 2, url: api.sensor2 },
+      { sensorNo: 3, url: api.sensor3 },
     ];
   }, []);
 
   // -------------------------
   // Fetch ALL data (raw points)
   // -------------------------
-useEffect(() => {
-  let closed = false;
+  useEffect(() => {
+    let closed = false;
 
-  setLoading(true);
-  setErr("");
+    setLoading(true);
+    setErr("");
 
-  // initialize maps once (same structure your later code expects)
-  const initial = {};
-  for (const { sensorNo } of urls) initial[sensorNo] = new Map();
-  setSeriesMaps(initial);
+    // init maps for all sensors in urls
+    const initial = {};
+    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+    setSeriesMaps(initial);
 
-  // NOTE: api.sensor1 must be the SSE endpoint (t_s1_stream.php)
-  // If your GraphApi() returns get_sensor_data.php, this will NOT work.
-  const sseUrl = `${urls[0].url}?lastId=0`;
+    // open one EventSource per sensor
+    const sources = urls.map(({ sensorNo, url }) => {
+      const es = new EventSource(`${url}?lastId=0`);
 
-  const es = new EventSource(sseUrl);
+      es.addEventListener("rows", (ev) => {
+        if (closed) return;
 
-  es.addEventListener("rows", (ev) => {
-    if (closed) return;
+        try {
+          const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
+          const rows = payload?.rows || [];
+          if (!Array.isArray(rows) || rows.length === 0) return;
 
-    try {
-      const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
-      const rows = payload?.rows || [];
-      if (!Array.isArray(rows) || rows.length === 0) return;
+          setSeriesMaps((prev) => {
+            const next = { ...(prev || {}) };
+            const oldMap = next[sensorNo] || new Map();
+            const newMap = new Map(oldMap);
 
-      // sensorNo is 1 in your case
-      const sensorNo = urls[0].sensorNo;
+            const field = `ph_s${sensorNo}`; // ✅ must match backend keys: ph_s1/ph_s2/ph_s3
 
-      setSeriesMaps((prev) => {
-        const next = { ...(prev || {}) };
-        const oldMap = next[sensorNo] || new Map();
-        const newMap = new Map(oldMap);
+            for (const r of rows) {
+              const ts = r?.timestamp;
+              const d = parseTimestamp(ts);
+              if (!ts || !d) continue;
 
-        // reuse your existing logic to map timestamp -> {t, v}
-        // but for streaming we add only incoming rows
-        const field = `ph_s${sensorNo}`;
+              const vRaw = r?.[field];
+              if (vRaw === null || vRaw === undefined) continue;
 
-        for (const r of rows) {
-          const ts = r?.timestamp;
-          const d = parseTimestamp(ts);
-          if (!ts || !d) continue;
+              const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+              if (!Number.isFinite(v)) continue;
 
-          const vRaw = r?.[field];
-          if (vRaw === null || vRaw === undefined) continue;
+              newMap.set(ts, { t: d.getTime(), v });
+            }
 
-          const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
-          if (!Number.isFinite(v)) continue;
+            next[sensorNo] = newMap;
+            return next;
+          });
 
-          newMap.set(ts, { t: d.getTime(), v });
+          setLoading(false);
+        } catch (e) {
+          setErr(e?.message || "Failed to parse SSE data");
+          setLoading(false);
         }
-
-        next[sensorNo] = newMap;
-        return next;
       });
 
-      setLoading(false);
-    } catch (e) {
-      setErr(e?.message || "Failed to parse SSE data");
-      setLoading(false);
-    }
-  });
+      es.addEventListener("ping", () => {
+        if (!closed) setLoading(false);
+      });
 
-  es.addEventListener("ping", () => {
-    // ignore keep-alive pings
-    if (!closed) setLoading(false);
-  });
+      es.onerror = () => {
+        if (closed) return;
+        setErr(`SSE disconnected for sensor ${sensorNo}`);
+        setLoading(false);
+        es.close();
+      };
 
-  es.onerror = () => {
-    if (closed) return;
-    setErr("SSE disconnected (check backend / CORS / HTTPS)");
-    setLoading(false);
-    // You can keep it open or close; closing prevents endless error spam
-    es.close();
-  };
+      return es;
+    });
 
-  return () => {
-    closed = true;
-    es.close();
-  };
-}, [urls]);
+    return () => {
+      closed = true;
+      sources.forEach((es) => es.close());
+    };
+  }, [urls]);
+
 
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
@@ -341,91 +334,93 @@ useEffect(() => {
     chart.update("none");
   }, [zoomPercent, labels]);
 
- const options = useMemo(() => {
-  const isDark = theme === "dark";
+  const options = useMemo(() => {
+    const isDark = theme === "dark";
 
-  const tickColor = isDark ? "#ffffff" : "#111827";
-  const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
+    const tickColor = isDark ? "#ffffff" : "#111827";
+    const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
 
-  const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
-  const tooltipTitle = isDark ? "#ffffff" : "#111827";
-  const tooltipBody = isDark ? "#ffffff" : "#111827";
-  const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
+    const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
+    const tooltipTitle = isDark ? "#ffffff" : "#111827";
+    const tooltipBody = isDark ? "#ffffff" : "#111827";
+    const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
 
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
 
-    interaction: {
-      mode: "nearest",
-      axis: "x",
-      intersect: false,
-    },
-
-    plugins: {
-      legend: {
-        position: "top",
-        labels: {
-          boxWidth: 24,
-          boxHeight: 10,
-          color: tickColor,
-        },
+      interaction: {
+        mode: "nearest",
+        axis: "xy",
+        intersect: false,
       },
-      tooltip: {
-        enabled: true,
-        displayColors: true,
-        padding: 10,
-        backgroundColor: tooltipBg,
-        titleColor: tooltipTitle,
-        bodyColor: tooltipBody,
-        borderColor: tooltipBorder,
-        borderWidth: 1,
-        callbacks: {
-          title: (items) => {
-            if (!items?.length) return "";
-            return labels[items[0].dataIndex] || "";
-          },
-          label: (ctx) => {
-            const v = ctx.raw;
-            if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
-            return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+
+      plugins: {
+        legend: {
+          position: "top",
+          labels: {
+            boxWidth: 24,
+            boxHeight: 10,
+            color: tickColor,
           },
         },
+        tooltip: {
+          enabled: true,
+          mode: "nearest",
+          intersect: false,
+          displayColors: true,
+          padding: 10,
+          backgroundColor: tooltipBg,
+          titleColor: tooltipTitle,
+          bodyColor: tooltipBody,
+          borderColor: tooltipBorder,
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => {
+              if (!items?.length) return "";
+              return labels[items[0].dataIndex] || "";
+            },
+            label: (ctx) => {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
+              return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+            },
+          },
+        },
       },
-    },
 
-    scales: {
-      x: {
-        ticks: {
-          color: tickColor,
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 14,
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 14,
+          },
+          grid: { color: gridColor },
         },
-        grid: { color: gridColor },
+        y: {
+          min: 0,
+          max: 14,
+          ticks: {
+            color: tickColor,
+            stepSize: 1,
+          },
+          grid: { color: gridColor },
+          title: {
+            display: true,
+            text: "pH",
+            color: tickColor,
+          },
+        },
       },
-      y: {
-        min: 0,
-        max: 14,
-        ticks: {
-          color: tickColor,
-          stepSize: 1,
-        },
-        grid: { color: gridColor },
-        title: {
-          display: true,
-          text: "pH",
-          color: tickColor,
-        },
-      },
-    },
-  };
-}, [labels, theme]);
+    };
+  }, [labels, theme]);
 
 
   return (
-    <div className= {`ec-page ${theme}`}>
-      <div className= {`ec-card ${theme}`}>
+    <div className={`ec-page ${theme}`}>
+      <div className={`ec-card ${theme}`}>
         {/* Zoom */}
         <div className="ec-zoom-wrap">
           <input

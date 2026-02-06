@@ -84,7 +84,7 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
             </div>
           </div>
         </div>
-
+{/* 
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
             <img src={tempIconDark} alt="water" />
@@ -98,7 +98,7 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
               <div className="sensorc-inner-sensor-unit">%</div>
             </div>
           </div>
-        </div>
+        </div> */}
       </div>
     </div>
   );
