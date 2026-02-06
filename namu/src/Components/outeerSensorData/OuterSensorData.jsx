@@ -21,6 +21,26 @@ function OuterSensorData() {
     return Number(num.toFixed(2));
   }
 
+
+
+  // ====current time----
+
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const t = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(t);
+  }, []);
+
+  const timeText = now.toLocaleString("ko-KR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+
   useEffect(() => {
     if (!lastMessage?.payload) return;
 
@@ -82,7 +102,7 @@ function OuterSensorData() {
 
   return (
     <div className={`outersensor-main-container ${theme}`}>
-        <div className="main-title">외부 기상 정보</div>
+      <div className="main-title">외부 기상 정보</div>
       <div className="outer-inner-main">
         <div className="outersensor-current-data">
           <div className="outersensor-data-title">외부 온도</div>
@@ -153,7 +173,7 @@ function OuterSensorData() {
 
         <div className="outersensor-current-time">
           <div className="outersensor-time">최종 검침 시간</div>
-          <div className="outersenosr-surrent-t">{values.last_time ?? "—"}</div>
+          <div className="outersenosr-surrent-t">{timeText}</div>
         </div>
       </div>
     </div>
