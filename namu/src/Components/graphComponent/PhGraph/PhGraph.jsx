@@ -153,6 +153,17 @@ export default function PhGraph() {
       { sensorNo: 1, url: api.sensor1 },
       { sensorNo: 2, url: api.sensor2 },
       { sensorNo: 3, url: api.sensor3 },
+
+      
+      { sensorNo: 4, url: api.sensor4 },
+      { sensorNo: 5, url: api.sensor5 },
+      { sensorNo: 6, url: api.sensor6 },
+
+      { sensorNo: 7, url: api.sensor7 },
+      { sensorNo: 8, url: api.sensor8 },
+      { sensorNo: 9, url: api.sensor9 },
+
+      { sensorNo: 10, url: api.sensor10 },
     ];
   }, []);
 

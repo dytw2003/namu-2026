@@ -113,92 +113,103 @@ export default function TempGraph() {
     const api = GraphApi();
     return [
       { sensorNo: 1, url: api.sensor1 },
-        { sensorNo: 2, url: api.sensor2 },
+      { sensorNo: 2, url: api.sensor2 },
       { sensorNo: 3, url: api.sensor3 },
+
+
+      { sensorNo: 4, url: api.sensor4 },
+      { sensorNo: 5, url: api.sensor5 },
+      { sensorNo: 6, url: api.sensor6 },
+
+      { sensorNo: 7, url: api.sensor7 },
+      { sensorNo: 8, url: api.sensor8 },
+      { sensorNo: 9, url: api.sensor9 },
+
+      { sensorNo: 10, url: api.sensor10 },
     ];
   }, []);
 
   // -------------------------
   // Fetch ALL data (raw points)
   // -------------------------
-// -------------------------
-// SSE: stream live rows and update seriesMaps
-// (keeps all your other logic unchanged)
-// -------------------------
-useEffect(() => {
-  let closed = false;
+  // -------------------------
+  // SSE: stream live rows and update seriesMaps
+  // (keeps all your other logic unchanged)
+  // -------------------------
+  useEffect(() => {
+    let closed = false;
 
-  setLoading(true);
-  setErr("");
+    setLoading(true);
+    setErr("");
 
-  // init maps for all sensors in urls
-  const initial = {};
-  for (const { sensorNo } of urls) initial[sensorNo] = new Map();
-  setSeriesMaps(initial);
+    // init maps for all sensors in urls
+    const initial = {};
+    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+    setSeriesMaps(initial);
 
-  // open one EventSource per sensor
-  const sources = urls.map(({ sensorNo, url }) => {
-    const es = new EventSource(`${url}?lastId=0`);
+    // open one EventSource per sensor
+    const sources = urls.map(({ sensorNo, url }) => {
+      const es = new EventSource(`${url}?lastId=0`);
 
-    es.addEventListener("rows", (ev) => {
-      if (closed) return;
+      es.addEventListener("rows", (ev) => {
+        if (closed) return;
 
-      try {
-        const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
-        const rows = payload?.rows || [];
-        if (!Array.isArray(rows) || rows.length === 0) return;
+        try {
+          const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
+          const rows = payload?.rows || [];
+          if (!Array.isArray(rows) || rows.length === 0) return;
 
-        setSeriesMaps((prev) => {
-          const next = { ...(prev || {}) };
-          const oldMap = next[sensorNo] || new Map();
-          const newMap = new Map(oldMap);
+          setSeriesMaps((prev) => {
+            const next = { ...(prev || {}) };
+            const oldMap = next[sensorNo] || new Map();
+            const newMap = new Map(oldMap);
 
-          const field = `temp_s${sensorNo}`; 
+            const field = `temp_s${sensorNo}`;
 
-          for (const r of rows) {
-            const ts = r?.timestamp;
-            const d = parseTimestamp(ts);
-            if (!ts || !d) continue;
+            for (const r of rows) {
+              const ts = r?.timestamp;
+              const d = parseTimestamp(ts);
+              if (!ts || !d) continue;
 
-            const vRaw = r?.[field];
-            if (vRaw === null || vRaw === undefined) continue;
+              const vRaw = r?.[field];
+              if (vRaw === null || vRaw === undefined) continue;
 
-            const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
-            if (!Number.isFinite(v)) continue;
+              const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+              if (!Number.isFinite(v)) continue;
 
-            newMap.set(ts, { t: d.getTime(), v });
-          }
+              newMap.set(ts, { t: d.getTime(), v });
+            }
 
-          next[sensorNo] = newMap;
-          return next;
-        });
+            next[sensorNo] = newMap;
+            return next;
+          });
 
+          setLoading(false);
+        } catch (e) {
+          setErr(e?.message || "Failed to parse SSE data");
+          setLoading(false);
+        }
+      });
+
+      es.addEventListener("ping", () => {
+        if (!closed) setLoading(false);
+      });
+
+      es.onerror = () => {
+        if (closed) return;
+        setErr(`SSE disconnected for sensor ${sensorNo}`);
         setLoading(false);
-      } catch (e) {
-        setErr(e?.message || "Failed to parse SSE data");
-        setLoading(false);
-      }
+        es.close();
+      };
+
+      return es;
     });
 
-    es.addEventListener("ping", () => {
-      if (!closed) setLoading(false);
-    });
-
-    es.onerror = () => {
-      if (closed) return;
-      setErr(`SSE disconnected for sensor ${sensorNo}`);
-      setLoading(false);
-      es.close();
+    return () => {
+      closed = true;
+      sources.forEach((es) => es.close());
     };
-
-    return es;
-  });
-
-  return () => {
-    closed = true;
-    sources.forEach((es) => es.close());
-  };
-}, [urls]);
+  }, [urls]);
 
 
 
@@ -256,8 +267,8 @@ useEffect(() => {
         backgroundColor: "transparent",
         borderWidth: 1,
         pointRadius: 0,
-        pointHitRadius: 10, 
-        hoverRadius: 4,     
+        pointHitRadius: 10,
+        hoverRadius: 4,
         hoverBorderWidth: 2,
         tension: 0.25,
         spanGaps: true,
@@ -301,93 +312,93 @@ useEffect(() => {
     chart.update("none");
   }, [zoomPercent, labels]);
 
- const options = useMemo(() => {
-  const isDark = theme === "dark";
+  const options = useMemo(() => {
+    const isDark = theme === "dark";
 
-  const tickColor = isDark ? "#ffffff" : "#111827";
-  const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
+    const tickColor = isDark ? "#ffffff" : "#111827";
+    const gridColor = isDark ? "rgba(255,255,255,0.08)" : "rgba(17,24,39,0.10)";
 
-  const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
-  const tooltipTitle = isDark ? "#ffffff" : "#111827";
-  const tooltipBody = isDark ? "#ffffff" : "#111827";
-  const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
+    const tooltipBg = isDark ? "rgba(0,0,0,0.75)" : "rgba(255,255,255,0.95)";
+    const tooltipTitle = isDark ? "#ffffff" : "#111827";
+    const tooltipBody = isDark ? "#ffffff" : "#111827";
+    const tooltipBorder = isDark ? "rgba(255,255,255,0.15)" : "rgba(17,24,39,0.12)";
 
-  return {
-    responsive: true,
-    maintainAspectRatio: false,
+    return {
+      responsive: true,
+      maintainAspectRatio: false,
 
-    interaction: {
-     mode: "nearest",
+      interaction: {
+        mode: "nearest",
         axis: "xy",
         intersect: false,
-    },
-
-    plugins: {
-      legend: {
-        position: "top",
-        labels: {
-          boxWidth: 24,
-          boxHeight: 10,
-          color: tickColor,
-        },
       },
-      tooltip: {
-        enabled: true,
-        mode: "nearest",
+
+      plugins: {
+        legend: {
+          position: "top",
+          labels: {
+            boxWidth: 24,
+            boxHeight: 10,
+            color: tickColor,
+          },
+        },
+        tooltip: {
+          enabled: true,
+          mode: "nearest",
           intersect: false,
-        displayColors: true,
-        padding: 10,
-        backgroundColor: tooltipBg,
-        titleColor: tooltipTitle,
-        bodyColor: tooltipBody,
-        borderColor: tooltipBorder,
-        borderWidth: 1,
-        callbacks: {
-          title: (items) => {
-            if (!items?.length) return "";
-            return labels[items[0].dataIndex] || "";
-          },
-          label: (ctx) => {
-            const v = ctx.raw;
-            if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
-            return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+          displayColors: true,
+          padding: 10,
+          backgroundColor: tooltipBg,
+          titleColor: tooltipTitle,
+          bodyColor: tooltipBody,
+          borderColor: tooltipBorder,
+          borderWidth: 1,
+          callbacks: {
+            title: (items) => {
+              if (!items?.length) return "";
+              return labels[items[0].dataIndex] || "";
+            },
+            label: (ctx) => {
+              const v = ctx.raw;
+              if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
+              return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
+            },
           },
         },
       },
-    },
 
-    scales: {
-      x: {
-        ticks: {
-          color: tickColor,
-          maxRotation: 0,
-          autoSkip: true,
-          maxTicksLimit: 20,
+      scales: {
+        x: {
+          ticks: {
+            color: tickColor,
+            maxRotation: 0,
+            autoSkip: true,
+            maxTicksLimit: 20,
+          },
+          grid: { color: gridColor },
         },
-        grid: { color: gridColor },
+        y: {
+          min: 0,
+          max: 70,
+          ticks: {
+            color: tickColor,
+            stepSize: 5,
+          },
+          grid: { color: gridColor },
+          title: {
+            display: true,
+            text: "온도(°C)",
+            color: tickColor,
+          },
+        },
       },
-      y: {
-        min: 0,
-        max: 70,
-        ticks: {
-          color: tickColor,
-          stepSize: 5,
-        },
-        grid: { color: gridColor },
-        title: {
-          display: true,
-          text: "온도(°C)",
-          color: tickColor,
-        },
-      },
-    },
-  };
-}, [labels, theme]);
+    };
+  }, [labels, theme]);
 
 
   return (
-    <div className= {`ec-page ${theme}`}>
-      <div className= {`ec-card ${theme}`}>
+    <div className={`ec-page ${theme}`}>
+      <div className={`ec-card ${theme}`}>
         {/* Zoom */}
         <div className="ec-zoom-wrap">
           <input
@@ -420,7 +431,7 @@ useEffect(() => {
               ref={chartRef}
               data={chartData}
               options={options}
-              // plugins={[phBandsPlugin]}
+            // plugins={[phBandsPlugin]}
             />
           )}
         </div>

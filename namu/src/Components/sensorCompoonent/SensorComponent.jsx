@@ -14,7 +14,7 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
   const humiId = `humi_${sid}`;
   const ecId = `ec_${sid}`;
   const phId = `ph_${sid}`;
-  const waterId = `pt_${sid}`;
+  const waterId = `wa_${sid}`;
   const sensorTitle = title ?? `센서 ${sensorNo}`;
 
   // ===theme ===========
@@ -84,13 +84,13 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
             </div>
           </div>
         </div>
-{/* 
+
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
             <img src={tempIconDark} alt="water" />
           </div>
           <div className="sensorc-inner-details">
-            <div className="sensorc-inner-title">abc</div>
+            <div className="sensorc-inner-title">유기물</div>
             <div className="sensorc-value-units">
               <div className="sensorc-inner-sensor-value" id={waterId}>
                {values[waterId] ?? "__"}
@@ -98,7 +98,7 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
               <div className="sensorc-inner-sensor-unit">%</div>
             </div>
           </div>
-        </div> */}
+        </div>
       </div>
     </div>
   );

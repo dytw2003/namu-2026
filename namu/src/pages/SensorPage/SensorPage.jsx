@@ -5,7 +5,7 @@ import "./SensorPage.css";
 import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 
 function SensorPage() {
-  const sensors = Array.from({ length: 3 }, (_, i) => i + 1);
+  const sensors = Array.from({ length: 10 }, (_, i) => i + 1);
   const { theme } = useTheme();
 
   // === format to 2 decimals ===
@@ -25,6 +25,15 @@ useEffect(() => {
     1: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=1&intervalMs=1000`,
     2: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=2&intervalMs=1000`,
     3: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=3&intervalMs=1000`,
+    
+    4: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=4&intervalMs=1000`,
+    5: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=5&intervalMs=1000`,
+    6: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=6&intervalMs=1000`,
+    7: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=7&intervalMs=1000`,
+    8: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=8&intervalMs=1000`,
+    9: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=9&intervalMs=1000`,
+    10: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=10&intervalMs=1000`,
+
   };
 
   const sources = sensors.map((sn) => {
