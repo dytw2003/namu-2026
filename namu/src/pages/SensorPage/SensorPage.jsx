@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import SensorComponent from "../../Components/sensorCompoonent/sensorComponent";
 import "./SensorPage.css";
-
 import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 
 function SensorPage() {
@@ -15,51 +14,84 @@ function SensorPage() {
     return Number(num.toFixed(2));
   }
 
-  const [history, setHistory] = useState([]); // optional
   const [values, setValues] = useState({});
 
-useEffect(() => {
-  const base = "http://www.adas.today";
+  useEffect(() => {
+    const base = "http://www.adas.today";
+    const POLL_MS = 5000;
 
-  const endpoints = {
-    1: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=1&intervalMs=1000`,
-    2: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=2&intervalMs=1000`,
-    3: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=3&intervalMs=1000`,
-    
-    4: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=4&intervalMs=1000`,
-    5: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=5&intervalMs=1000`,
-    6: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=6&intervalMs=1000`,
-    7: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=7&intervalMs=1000`,
-    8: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=8&intervalMs=1000`,
-    9: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=9&intervalMs=1000`,
-    10: `${base}/sf/backend/namu_php/sensor1_stream.php?sensorNo=10&intervalMs=1000`,
+    let alive = true;
+    let timerId = null;
 
-  };
+    async function fetchOneSensor(sensorNo, signal) {
+      const url = `${base}/sf/backend/namu_php/sensor_latest.php?sensorNo=${sensorNo}`;
 
-  const sources = sensors.map((sn) => {
-    const es = new EventSource(endpoints[sn]);
+      const res = await fetch(url, {
+        method: "GET",
+        cache: "no-store",
+        signal,
+      });
 
-    es.addEventListener("update", (ev) => {
-      const payload = JSON.parse(ev.data);
+      if (!res.ok) throw new Error(`HTTP ${res.status} for sensorNo=${sensorNo}`);
 
+      const json = await res.json(); // { ok: true, data: {...} }
+      if (!json?.ok || !json.data) return null;
+
+      // format all numeric values
       const formatted = {};
-      for (const [key, val] of Object.entries(payload)) {
+      for (const [key, val] of Object.entries(json.data)) {
         formatted[key] = to2Decimals(val);
       }
+      return formatted;
+    }
 
-      setValues((prev) => ({ ...prev, ...formatted }));
-    });
+    async function pollAll() {
+      const controller = new AbortController();
+      const { signal } = controller;
 
-    es.onerror = () => {
-      // EventSource auto-retries automatically
+      // store controller so we can abort on cleanup
+      pollAll._controller = controller;
+
+      try {
+        // fetch 10 sensors in parallel
+        const results = await Promise.allSettled(
+          sensors.map((sn) => fetchOneSensor(sn, signal))
+        );
+
+        if (!alive) return;
+
+        // merge all successful results into one object
+        const merged = {};
+        for (const r of results) {
+          if (r.status === "fulfilled" && r.value) {
+            Object.assign(merged, r.value);
+          }
+        }
+
+        if (Object.keys(merged).length > 0) {
+          setValues((prev) => ({ ...prev, ...merged }));
+        }
+      } catch (err) {
+        // ignore abort errors
+        if (err?.name !== "AbortError") {
+          // console.error(err);
+        }
+      }
+    }
+
+    // initial fetch immediately
+    pollAll();
+
+    // repeat every 5 seconds
+    timerId = setInterval(pollAll, POLL_MS);
+
+    return () => {
+      alive = false;
+      if (timerId) clearInterval(timerId);
+      // abort any in-flight fetch
+      if (pollAll._controller) pollAll._controller.abort();
     };
-
-    return es;
-  });
-
-  return () => sources.forEach((es) => es.close());
-}, []);
-
+  }, []);
 
   return (
     <div className={`sensors-grid ${theme}`}>

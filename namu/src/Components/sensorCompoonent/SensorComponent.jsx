@@ -1,10 +1,13 @@
 import React from "react";
 import "./SensorComponent.css";
 
+import { FaGem } from "react-icons/fa";
+
 import tempIconDark from "../../assets/namu-temp-dark.svg";
 import humiIconDark from "../../assets/namu-humi-dark.svg";
 import ecIconDark from "../../assets/namu-ec-dark.svg";
 import phIconDark from "../../assets/namu-ph-dark.svg";
+import inOrganicIconDark from "../../assets/inorganic.svg";
 
 import { useTheme } from "../../providers/ThemeProvider/ThemeProvider";
 
@@ -87,7 +90,7 @@ function SensorComponent({ sensorNo = 1, title, values = {} }) {
 
         <div className="sensorc-inner-type1">
           <div className="sensorc-inner-image">
-            <img src={tempIconDark} alt="water" />
+            <img src={inOrganicIconDark} alt="water" />
           </div>
           <div className="sensorc-inner-details">
             <div className="sensorc-inner-title">유기물</div>

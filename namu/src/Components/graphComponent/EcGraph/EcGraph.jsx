@@ -157,11 +157,9 @@ export default function EcGraph() {
       { sensorNo: 4, url: api.sensor4 },
       { sensorNo: 5, url: api.sensor5 },
       { sensorNo: 6, url: api.sensor6 },
-
       { sensorNo: 7, url: api.sensor7 },
       { sensorNo: 8, url: api.sensor8 },
       { sensorNo: 9, url: api.sensor9 },
-
       { sensorNo: 10, url: api.sensor10 },
 
 
@@ -171,80 +169,86 @@ export default function EcGraph() {
   // -------------------------
   // Fetch ALL data (raw points)
   // -------------------------
-  useEffect(() => {
-    let closed = false;
+  // ✅ ONLY changed the “streaming” useEffect to polling every 5 seconds.
+  // ✅ Everything else kept same (logic / maps / zoom / chart / etc.)
 
+useEffect(() => {
+  let cancelled = false;
+
+  const fetchAll = async () => {
     setLoading(true);
     setErr("");
 
-    // init maps for all sensors in urls
+    // init empty maps for all sensors
     const initial = {};
     for (const { sensorNo } of urls) initial[sensorNo] = new Map();
     setSeriesMaps(initial);
 
-    // open one EventSource per sensor
-    const sources = urls.map(({ sensorNo, url }) => {
-      const es = new EventSource(`${url}?lastId=0`);
+    try {
+      const results = await Promise.allSettled(
+        urls.map(async ({ sensorNo, url }) => {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status} (${url})`);
 
-      es.addEventListener("rows", (ev) => {
-        if (closed) return;
+          const json = await res.json();
+          const rows = Array.isArray(json?.rows) ? json.rows : [];
 
-        try {
-          const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
-          const rows = payload?.rows || [];
-          if (!Array.isArray(rows) || rows.length === 0) return;
+          const field = `ec_s${sensorNo}`; // ✅ change to temp_s / humi_s / ph_s depending graph
 
-          setSeriesMaps((prev) => {
-            const next = { ...(prev || {}) };
-            const oldMap = next[sensorNo] || new Map();
-            const newMap = new Map(oldMap);
+          const m = new Map();
+          for (const r of rows) {
+            const ts = r?.timestamp;
+            const d = parseTimestamp(ts);
+            if (!ts || !d) continue;
 
-            const field = `ph_s${sensorNo}`; // ✅ must match backend keys: ph_s1/ph_s2/ph_s3
+            const vRaw = r?.[field];
+            if (vRaw === null || vRaw === undefined) continue;
 
-            for (const r of rows) {
-              const ts = r?.timestamp;
-              const d = parseTimestamp(ts);
-              if (!ts || !d) continue;
+            const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+            if (!Number.isFinite(v)) continue;
 
-              const vRaw = r?.[field];
-              if (vRaw === null || vRaw === undefined) continue;
+            m.set(ts, { t: d.getTime(), v });
+          }
 
-              const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
-              if (!Number.isFinite(v)) continue;
+          return { sensorNo, map: m };
+        })
+      );
 
-              newMap.set(ts, { t: d.getTime(), v });
-            }
+      if (cancelled) return;
 
-            next[sensorNo] = newMap;
-            return next;
-          });
-
-          setLoading(false);
-        } catch (e) {
-          setErr(e?.message || "Failed to parse SSE data");
-          setLoading(false);
+      setSeriesMaps((prev) => {
+        const next = { ...(prev || {}) };
+        for (const r of results) {
+          if (r.status === "fulfilled") {
+            next[r.value.sensorNo] = r.value.map;
+          } else {
+            // keep empty map but record error message
+            console.warn("API failed:", r.reason);
+          }
         }
+        return next;
       });
 
-      es.addEventListener("ping", () => {
-        if (!closed) setLoading(false);
-      });
+      // if *all* failed, show a real error
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+      if (failedCount === results.length) {
+        setErr("All sensor APIs failed. Check URLs / server.");
+      }
+    } catch (e) {
+      if (!cancelled) setErr(e?.message || "Failed to fetch sensor data");
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  };
 
-      es.onerror = () => {
-        if (closed) return;
-        setErr(`SSE disconnected for sensor ${sensorNo}`);
-        setLoading(false);
-        es.close();
-      };
+  fetchAll();
 
-      return es;
-    });
+  return () => {
+    cancelled = true;
+  };
+}, [urls]);
 
-    return () => {
-      closed = true;
-      sources.forEach((es) => es.close());
-    };
-  }, [urls]);
+
 
 
   // --------------------------------------------

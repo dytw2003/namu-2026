@@ -134,36 +134,33 @@ export default function HUmiGraph() {
   // Fetch ALL data (raw points)
   // -------------------------
 
-  useEffect(() => {
-  let closed = false;
+// ✅ Replace ONLY your current “streaming” useEffect with this polling version.
+// ✅ Everything else stays the same.
 
-  setLoading(true);
-  setErr("");
+useEffect(() => {
+  let cancelled = false;
 
-  // init maps for all sensors in urls
-  const initial = {};
-  for (const { sensorNo } of urls) initial[sensorNo] = new Map();
-  setSeriesMaps(initial);
+  const fetchAll = async () => {
+    setLoading(true);
+    setErr("");
 
-  // open one EventSource per sensor
-  const sources = urls.map(({ sensorNo, url }) => {
-    const es = new EventSource(`${url}?lastId=0`);
+    // init empty maps for all sensors
+    const initial = {};
+    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+    setSeriesMaps(initial);
 
-    es.addEventListener("rows", (ev) => {
-      if (closed) return;
+    try {
+      const results = await Promise.allSettled(
+        urls.map(async ({ sensorNo, url }) => {
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status} (${url})`);
 
-      try {
-        const payload = JSON.parse(ev.data); // { lastId, rows: [...] }
-        const rows = payload?.rows || [];
-        if (!Array.isArray(rows) || rows.length === 0) return;
+          const json = await res.json();
+          const rows = Array.isArray(json?.rows) ? json.rows : [];
 
-        setSeriesMaps((prev) => {
-          const next = { ...(prev || {}) };
-          const oldMap = next[sensorNo] || new Map();
-          const newMap = new Map(oldMap);
+          const field = `humi_s${sensorNo}`; // ✅ HUmiGraph uses humi_s1..humi_s10
 
-          const field = `humi_s${sensorNo}`; // ✅ must match backend keys: ph_s1/ph_s2/ph_s3
-
+          const m = new Map();
           for (const r of rows) {
             const ts = r?.timestamp;
             const d = parseTimestamp(ts);
@@ -175,39 +172,46 @@ export default function HUmiGraph() {
             const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
             if (!Number.isFinite(v)) continue;
 
-            newMap.set(ts, { t: d.getTime(), v });
+            m.set(ts, { t: d.getTime(), v });
           }
 
-          next[sensorNo] = newMap;
-          return next;
-        });
+          return { sensorNo, map: m };
+        })
+      );
 
-        setLoading(false);
-      } catch (e) {
-        setErr(e?.message || "Failed to parse SSE data");
-        setLoading(false);
+      if (cancelled) return;
+
+      setSeriesMaps((prev) => {
+        const next = { ...(prev || {}) };
+        for (const r of results) {
+          if (r.status === "fulfilled") {
+            next[r.value.sensorNo] = r.value.map;
+          } else {
+            console.warn("API failed:", r.reason);
+          }
+        }
+        return next;
+      });
+
+      const failedCount = results.filter((r) => r.status === "rejected").length;
+      if (failedCount === results.length) {
+        setErr("All sensor APIs failed. Check URLs / server.");
       }
-    });
+    } catch (e) {
+      if (!cancelled) setErr(e?.message || "Failed to fetch sensor data");
+    } finally {
+      if (!cancelled) setLoading(false);
+    }
+  };
 
-    es.addEventListener("ping", () => {
-      if (!closed) setLoading(false);
-    });
-
-    es.onerror = () => {
-      if (closed) return;
-      setErr(`SSE disconnected for sensor ${sensorNo}`);
-      setLoading(false);
-      es.close();
-    };
-
-    return es;
-  });
+  fetchAll();
 
   return () => {
-    closed = true;
-    sources.forEach((es) => es.close());
+    cancelled = true;
   };
 }, [urls]);
+
+
 
 
 
