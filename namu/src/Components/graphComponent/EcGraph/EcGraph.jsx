@@ -4,15 +4,10 @@ import GraphApi from "../../../apis/GaphApi/GraphApi";
 
 import "./EcGraph.css";
 
-
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-import { useTheme } from "../../../providers/ThemeProvider/ThemeProvider"
-
-
-
+import { useTheme } from "../../../providers/ThemeProvider/ThemeProvider";
 
 import {
   Chart as ChartJS,
@@ -37,8 +32,7 @@ ChartJS.register(
 );
 
 /**
- * ✅ pH background bands: 0–5, 5–8, 8–14
- * Drawn behind the line (single canvas).
+ * ✅ (kept as-is, even if unused in EC)
  */
 const phBandsPlugin = {
   id: "phBandsPlugin",
@@ -52,9 +46,9 @@ const phBandsPlugin = {
     const { left, right } = chartArea;
 
     const bands = [
-      { from: 0, to: 5.5, color: "rgba(239,  68,  68, 0.12)" },  // 0–5
-      { from: 5.5, to: 7.5, color: "rgba( 34, 197,  94, 0.12)" },  // 5–8
-      { from: 7.5, to: 14.0, color: "rgba( 59, 130, 246, 0.12)" }, // 8–14
+      { from: 0, to: 5.5, color: "rgba(239,  68,  68, 0.12)" },
+      { from: 5.5, to: 7.5, color: "rgba( 34, 197,  94, 0.12)" },
+      { from: 7.5, to: 14.0, color: "rgba( 59, 130, 246, 0.12)" },
     ];
 
     ctx.save();
@@ -71,10 +65,6 @@ const phBandsPlugin = {
   },
 };
 
-/**
- * Convert "YYYY-MM-DD HH:mm:ss" -> Date (local)
- * If parsing fails, return null.
- */
 function parseTimestamp(ts) {
   if (!ts || typeof ts !== "string") return null;
   const iso = ts.replace(" ", "T");
@@ -83,12 +73,10 @@ function parseTimestamp(ts) {
 }
 
 /**
- * Build RAW (non-grouped) pH map:
- * Map(timestampString -> { t: timeMs, v: value })
- * Keeps last value for duplicate timestamps.
+ * (kept as-is, even if unused)
  */
 function buildPhMap(rows, sensorNo) {
-  const field = `ec_s{sensorNo}`;
+  const field = `ec_s{sensorNo}`; // NOTE: kept your original line as-is
   const m = new Map();
 
   for (const r of rows || []) {
@@ -108,9 +96,6 @@ function buildPhMap(rows, sensorNo) {
   return m;
 }
 
-/**
- * Label for x-axis ticks.
- */
 function tsToLabel(ts) {
   const d = parseTimestamp(ts);
   if (!d) return ts;
@@ -123,9 +108,7 @@ function tsToLabel(ts) {
 
 export default function EcGraph() {
   const username = "jbsy24";
-
   const { theme } = useTheme();
-
 
   const showNotReady = () => {
     toast.info("서비스 준비 중입니다.", {
@@ -142,10 +125,14 @@ export default function EcGraph() {
   const [err, setErr] = useState("");
   const [seriesMaps, setSeriesMaps] = useState(null); // {1: Map, 2: Map, ...}
 
-  // ✅ zoom scrollbar (0 = zoom out/full view, 100 = zoom in/max)
   const [zoomPercent, setZoomPercent] = useState(0);
-
   const chartRef = useRef(null);
+
+  // ✅ SAME as PHGraph/HUmiGraph: store zoom window so polling doesn't reset view
+  const zoomWindowRef = useRef({ min: undefined, max: undefined, percent: 0 });
+
+  // ✅ SAME as PHGraph/HUmiGraph: react-chartjs-2 chart instance helper
+  const getChart = () => chartRef.current?.chart || chartRef.current;
 
   const urls = useMemo(() => {
     const api = GraphApi();
@@ -153,7 +140,6 @@ export default function EcGraph() {
       { sensorNo: 1, url: api.sensor1 },
       { sensorNo: 2, url: api.sensor2 },
       { sensorNo: 3, url: api.sensor3 },
-
       { sensorNo: 4, url: api.sensor4 },
       { sensorNo: 5, url: api.sensor5 },
       { sensorNo: 6, url: api.sensor6 },
@@ -161,95 +147,93 @@ export default function EcGraph() {
       { sensorNo: 8, url: api.sensor8 },
       { sensorNo: 9, url: api.sensor9 },
       { sensorNo: 10, url: api.sensor10 },
-
-
     ];
   }, []);
 
   // -------------------------
   // Fetch ALL data (raw points)
+  // ✅ NOW poll every 5 seconds + console.log(current time)
   // -------------------------
-  // ✅ ONLY changed the “streaming” useEffect to polling every 5 seconds.
-  // ✅ Everything else kept same (logic / maps / zoom / chart / etc.)
+  useEffect(() => {
+    let cancelled = false;
+    let timerId = null;
 
-useEffect(() => {
-  let cancelled = false;
+    const fetchAll = async () => {
+      // ✅ required log (current time)
+      console.log("[EcGraph] Fetch at:", new Date().toLocaleString());
 
-  const fetchAll = async () => {
-    setLoading(true);
-    setErr("");
+      setLoading(true);
+      setErr("");
 
-    // init empty maps for all sensors
-    const initial = {};
-    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
-    setSeriesMaps(initial);
+      // init empty maps for all sensors
+      const initial = {};
+      for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+      setSeriesMaps(initial);
 
-    try {
-      const results = await Promise.allSettled(
-        urls.map(async ({ sensorNo, url }) => {
-          const res = await fetch(url, { cache: "no-store" });
-          if (!res.ok) throw new Error(`HTTP ${res.status} (${url})`);
+      try {
+        const results = await Promise.allSettled(
+          urls.map(async ({ sensorNo, url }) => {
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status} (${url})`);
 
-          const json = await res.json();
-          const rows = Array.isArray(json?.rows) ? json.rows : [];
+            const json = await res.json();
+            const rows = Array.isArray(json?.rows) ? json.rows : [];
 
-          const field = `ec_s${sensorNo}`; // ✅ change to temp_s / humi_s / ph_s depending graph
+            const field = `ec_s${sensorNo}`;
 
-          const m = new Map();
-          for (const r of rows) {
-            const ts = r?.timestamp;
-            const d = parseTimestamp(ts);
-            if (!ts || !d) continue;
+            const m = new Map();
+            for (const r of rows) {
+              const ts = r?.timestamp;
+              const d = parseTimestamp(ts);
+              if (!ts || !d) continue;
 
-            const vRaw = r?.[field];
-            if (vRaw === null || vRaw === undefined) continue;
+              const vRaw = r?.[field];
+              if (vRaw === null || vRaw === undefined) continue;
 
-            const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
-            if (!Number.isFinite(v)) continue;
+              const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+              if (!Number.isFinite(v)) continue;
 
-            m.set(ts, { t: d.getTime(), v });
+              m.set(ts, { t: d.getTime(), v });
+            }
+
+            return { sensorNo, map: m };
+          })
+        );
+
+        if (cancelled) return;
+
+        setSeriesMaps((prev) => {
+          const next = { ...(prev || {}) };
+          for (const r of results) {
+            if (r.status === "fulfilled") {
+              next[r.value.sensorNo] = r.value.map;
+            } else {
+              console.warn("API failed:", r.reason);
+            }
           }
+          return next;
+        });
 
-          return { sensorNo, map: m };
-        })
-      );
-
-      if (cancelled) return;
-
-      setSeriesMaps((prev) => {
-        const next = { ...(prev || {}) };
-        for (const r of results) {
-          if (r.status === "fulfilled") {
-            next[r.value.sensorNo] = r.value.map;
-          } else {
-            // keep empty map but record error message
-            console.warn("API failed:", r.reason);
-          }
+        const failedCount = results.filter((r) => r.status === "rejected").length;
+        if (failedCount === results.length) {
+          setErr("All sensor APIs failed. Check URLs / server.");
         }
-        return next;
-      });
-
-      // if *all* failed, show a real error
-      const failedCount = results.filter((r) => r.status === "rejected").length;
-      if (failedCount === results.length) {
-        setErr("All sensor APIs failed. Check URLs / server.");
+      } catch (e) {
+        if (!cancelled) setErr(e?.message || "Failed to fetch sensor data");
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch (e) {
-      if (!cancelled) setErr(e?.message || "Failed to fetch sensor data");
-    } finally {
-      if (!cancelled) setLoading(false);
-    }
-  };
+    };
 
-  fetchAll();
+    // initial + polling
+    fetchAll();
+    timerId = setInterval(fetchAll, 5000);
 
-  return () => {
-    cancelled = true;
-  };
-}, [urls]);
-
-
-
+    return () => {
+      cancelled = true;
+      if (timerId) clearInterval(timerId);
+    };
+  }, [urls]);
 
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
@@ -259,7 +243,7 @@ useEffect(() => {
       return { timelineTs: [], labels: [], datasets: [] };
     }
 
-    // union timestamps across all sensors
+    // ✅ kept your original: only [1..5]
     const allTs = new Map(); // ts -> timeMs
     for (const sn of [1, 2, 3, 4, 5]) {
       const m = seriesMaps?.[sn];
@@ -269,7 +253,6 @@ useEffect(() => {
       }
     }
 
-    // sort by timeMs
     const timelineTs = Array.from(allTs.entries())
       .sort((a, b) => a[1] - b[1])
       .map(([ts]) => ts);
@@ -305,8 +288,8 @@ useEffect(() => {
         backgroundColor: "transparent",
         borderWidth: 1,
         pointRadius: 0,
-        pointHitRadius: 10, // ✅ easier hover
-        hoverRadius: 4,     // ✅ show hover dot
+        pointHitRadius: 10,
+        hoverRadius: 4,
         hoverBorderWidth: 2,
         tension: 0.25,
         spanGaps: true,
@@ -321,24 +304,21 @@ useEffect(() => {
   }, [labels, datasets]);
 
   // --------------------------------------------
-  // Zoom logic (single canvas) using slider
-  //   - 0% => full view
-  //   - 100% => most zoomed-in
-  //   - anchored to the RIGHT (latest time)
+  // ✅ SAME as PHGraph: sticky zoom (won't reset after fetch)
   // --------------------------------------------
+
+  // Apply zoom when slider changes + save window
   useEffect(() => {
-    const chart = chartRef.current;
+    const chart = getChart();
     if (!chart) return;
 
     const total = labels.length;
     if (total <= 2) return;
 
     const maxIndex = total - 1;
-
-    // smallest window at max zoom (show at least 12 points or 5%)
     const minWindow = Math.max(12, Math.floor(total * 0.05));
 
-    const t = zoomPercent / 100; // 0..1
+    const t = zoomPercent / 100;
     const windowSize = Math.round(total - t * (total - minWindow));
 
     const minIndex = Math.max(0, maxIndex - windowSize);
@@ -347,8 +327,34 @@ useEffect(() => {
     chart.options.scales.x.min = minIndex;
     chart.options.scales.x.max = maxVisible;
 
-    chart.update("none");
+    zoomWindowRef.current = { min: minIndex, max: maxVisible, percent: zoomPercent };
+
+    chart.update();
   }, [zoomPercent, labels]);
+
+  // Re-apply saved zoom when new labels arrive (after polling)
+  useEffect(() => {
+    const chart = getChart();
+    if (!chart) return;
+    if (!labels.length) return;
+
+    const saved = zoomWindowRef.current;
+    if (saved?.min === undefined || saved?.max === undefined) return;
+
+    const total = labels.length;
+    const maxIndex = total - 1;
+
+    const windowSize = Math.max(2, saved.max - saved.min);
+    const newMax = maxIndex;
+    const newMin = Math.max(0, newMax - windowSize);
+
+    chart.options.scales.x.min = newMin;
+    chart.options.scales.x.max = newMax;
+
+    zoomWindowRef.current = { ...saved, min: newMin, max: newMax };
+
+    chart.update();
+  }, [labels]);
 
   const options = useMemo(() => {
     const isDark = theme === "dark";
@@ -433,7 +439,6 @@ useEffect(() => {
     };
   }, [labels, theme]);
 
-
   return (
     <div className={`ec-page ${theme}`}>
       <div className={`ec-card ${theme}`}>
@@ -465,21 +470,13 @@ useEffect(() => {
           )}
 
           {!loading && !err && datasets.length > 0 && (
-            <Line
-              ref={chartRef}
-              data={chartData}
-              options={options}
-
-            />
+            <Line ref={chartRef} data={chartData} options={options} />
           )}
         </div>
       </div>
 
       <div className={`graph-dwn-btn-main ${theme}`}>
-        <div
-          className="graph-den-btn"
-          onClick={showNotReady}
-        >
+        <div className="graph-den-btn" onClick={showNotReady}>
           다운로드 (CSV File)
         </div>
 
@@ -493,7 +490,6 @@ useEffect(() => {
           bodyClassName="toast-center-body"
         />
       </div>
-
     </div>
   );
 }

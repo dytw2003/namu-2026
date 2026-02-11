@@ -73,13 +73,14 @@ function parseTimestamp(ts) {
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+// (you can keep this as you want; zoom fix doesn't depend on it)
 function tsToLabel(ts) {
   const d = parseTimestamp(ts);
   if (!d) return ts;
   return d.toLocaleString(undefined, {
-    hour: "numeric",
+    hour: "2-digit",
     minute: "2-digit",
-    hour12: true,
+    hour12: false,
   });
 }
 
@@ -106,6 +107,9 @@ export default function PhGraph() {
 
   // ✅ persist lastId across renders
   const lastIdsRef = useRef({});
+
+  // ✅ NEW: remember current zoom window so it won't reset on new data
+  const zoomWindowRef = useRef({ min: undefined, max: undefined, percent: 0 });
 
   const urls = useMemo(() => {
     const api = GraphApi();
@@ -169,7 +173,8 @@ export default function PhGraph() {
             }
 
             const rows = Array.isArray(json.rows) ? json.rows : [];
-            const newLastId = typeof json.lastId === "number" ? json.lastId : lastId;
+            const newLastId =
+              typeof json.lastId === "number" ? json.lastId : lastId;
 
             return { sensorNo, rows, newLastId };
           })
@@ -298,9 +303,12 @@ export default function PhGraph() {
 
   const chartData = useMemo(() => ({ labels, datasets }), [labels, datasets]);
 
-  // Zoom
+  // ✅ Helper: get real chart instance
+  const getChart = () => chartRef.current?.chart || chartRef.current;
+
+  // ✅ Apply zoom when slider changes (AND save window)
   useEffect(() => {
-    const chart = chartRef.current;
+    const chart = getChart();
     if (!chart) return;
 
     const total = labels.length;
@@ -318,8 +326,36 @@ export default function PhGraph() {
     chart.options.scales.x.min = minIndex;
     chart.options.scales.x.max = maxVisible;
 
-    chart.update("none");
+    // ✅ remember current window so it won't reset after polling
+    zoomWindowRef.current = { min: minIndex, max: maxVisible, percent: zoomPercent };
+
+    chart.update(); // ✅ normal update so axis recalculates correctly
   }, [zoomPercent, labels]);
+
+  // ✅ Re-apply saved zoom window whenever new labels arrive (polling update)
+  useEffect(() => {
+    const chart = getChart();
+    if (!chart) return;
+    if (!labels.length) return;
+
+    const saved = zoomWindowRef.current;
+    if (saved?.min === undefined || saved?.max === undefined) return;
+
+    const total = labels.length;
+    const maxIndex = total - 1;
+
+    // shift window to keep it ending at latest point
+    const windowSize = Math.max(2, saved.max - saved.min);
+    const newMax = maxIndex;
+    const newMin = Math.max(0, newMax - windowSize);
+
+    chart.options.scales.x.min = newMin;
+    chart.options.scales.x.max = newMax;
+
+    zoomWindowRef.current = { ...saved, min: newMin, max: newMax };
+
+    chart.update();
+  }, [labels]);
 
   const options = useMemo(() => {
     const isDark = theme === "dark";
@@ -353,10 +389,12 @@ export default function PhGraph() {
           borderColor: tooltipBorder,
           borderWidth: 1,
           callbacks: {
-            title: (items) => (items?.length ? labels[items[0].dataIndex] || "" : ""),
+            title: (items) =>
+              items?.length ? labels[items[0].dataIndex] || "" : "",
             label: (ctx) => {
               const v = ctx.raw;
-              if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
+              if (v === null || v === undefined)
+                return `${ctx.dataset.label}: -`;
               return `${ctx.dataset.label}: ${Number(v).toFixed(2)}`;
             },
           },
@@ -364,7 +402,12 @@ export default function PhGraph() {
       },
       scales: {
         x: {
-          ticks: { color: tickColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 14 },
+          ticks: {
+            color: tickColor,
+            autoSkip: true,
+            maxTicksLimit: 14,
+            maxRotation: 0,
+          },
           grid: { color: gridColor },
         },
         y: {
@@ -403,7 +446,12 @@ export default function PhGraph() {
             <div className="ec-msg">No pH data found (all sensors are null).</div>
           )}
           {!loading && !err && datasets.length > 0 && (
-            <Line ref={chartRef} data={chartData} options={options} plugins={[phBandsPlugin]} />
+            <Line
+              ref={chartRef}
+              data={chartData}
+              options={options}
+              plugins={[phBandsPlugin]}
+            />
           )}
         </div>
       </div>

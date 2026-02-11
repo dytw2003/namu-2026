@@ -4,15 +4,10 @@ import GraphApi from "../../../apis/GaphApi/GraphApi";
 
 import "./HUmiGraph.css";
 
-
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-
-import { useTheme } from "../../../providers/ThemeProvider/ThemeProvider"
-
-
-
+import { useTheme } from "../../../providers/ThemeProvider/ThemeProvider";
 
 import {
   Chart as ChartJS,
@@ -35,7 +30,6 @@ ChartJS.register(
   Legend,
   Filler
 );
-
 
 function parseTimestamp(ts) {
   if (!ts || typeof ts !== "string") return null;
@@ -88,7 +82,6 @@ export default function HUmiGraph() {
 
   const { theme } = useTheme();
 
-
   const showNotReady = () => {
     toast.info("서비스 준비 중입니다.", {
       position: "bottom-center",
@@ -109,6 +102,12 @@ export default function HUmiGraph() {
 
   const chartRef = useRef(null);
 
+  // ✅ NEW: remember current zoom window so it won't reset on new data
+  const zoomWindowRef = useRef({ min: undefined, max: undefined, percent: 0 });
+
+  // ✅ helper: get real chart instance
+  const getChart = () => chartRef.current?.chart || chartRef.current;
+
   const urls = useMemo(() => {
     const api = GraphApi();
     return [
@@ -116,7 +115,6 @@ export default function HUmiGraph() {
       { sensorNo: 2, url: api.sensor2 },
       { sensorNo: 3, url: api.sensor3 },
 
-      
       { sensorNo: 4, url: api.sensor4 },
       { sensorNo: 5, url: api.sensor5 },
       { sensorNo: 6, url: api.sensor6 },
@@ -126,94 +124,94 @@ export default function HUmiGraph() {
       { sensorNo: 9, url: api.sensor9 },
 
       { sensorNo: 10, url: api.sensor10 },
-      
     ];
   }, []);
 
   // -------------------------
   // Fetch ALL data (raw points)
   // -------------------------
+  useEffect(() => {
+    let cancelled = false;
 
-// ✅ Replace ONLY your current “streaming” useEffect with this polling version.
-// ✅ Everything else stays the same.
+    const fetchAll = async () => {
+      console.log("[HUmiGraph] Fetch started:", new Date().toISOString());
+      setLoading(true);
+      setErr("");
 
-useEffect(() => {
-  let cancelled = false;
+      // init empty maps for all sensors
+      const initial = {};
+      for (const { sensorNo } of urls) initial[sensorNo] = new Map();
+      setSeriesMaps(initial);
 
-  const fetchAll = async () => {
-    setLoading(true);
-    setErr("");
+      try {
+        const results = await Promise.allSettled(
+          urls.map(async ({ sensorNo, url }) => {
+            console.log(`[HUmiGraph] Fetching sensor-${sensorNo}: ${url}`);
+            const res = await fetch(url, { cache: "no-store" });
+            if (!res.ok) throw new Error(`HTTP ${res.status} (${url})`);
 
-    // init empty maps for all sensors
-    const initial = {};
-    for (const { sensorNo } of urls) initial[sensorNo] = new Map();
-    setSeriesMaps(initial);
+            const json = await res.json();
+            const rows = Array.isArray(json?.rows) ? json.rows : [];
 
-    try {
-      const results = await Promise.allSettled(
-        urls.map(async ({ sensorNo, url }) => {
-          const res = await fetch(url, { cache: "no-store" });
-          if (!res.ok) throw new Error(`HTTP ${res.status} (${url})`);
+            const field = `humi_s${sensorNo}`; // ✅ humi_s1..humi_s10
 
-          const json = await res.json();
-          const rows = Array.isArray(json?.rows) ? json.rows : [];
+            const m = new Map();
+            for (const r of rows) {
+              const ts = r?.timestamp;
+              const d = parseTimestamp(ts);
+              if (!ts || !d) continue;
 
-          const field = `humi_s${sensorNo}`; // ✅ HUmiGraph uses humi_s1..humi_s10
+              const vRaw = r?.[field];
+              if (vRaw === null || vRaw === undefined) continue;
 
-          const m = new Map();
-          for (const r of rows) {
-            const ts = r?.timestamp;
-            const d = parseTimestamp(ts);
-            if (!ts || !d) continue;
+              const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
+              if (!Number.isFinite(v)) continue;
 
-            const vRaw = r?.[field];
-            if (vRaw === null || vRaw === undefined) continue;
+              m.set(ts, { t: d.getTime(), v });
+            }
 
-            const v = typeof vRaw === "number" ? vRaw : Number(vRaw);
-            if (!Number.isFinite(v)) continue;
+            console.log(
+              `[HUmiGraph] sensor-${sensorNo} received rows=${rows.length}, validPoints=${m.size}`
+            );
 
-            m.set(ts, { t: d.getTime(), v });
+            return { sensorNo, map: m };
+          })
+        );
+
+        if (cancelled) return;
+
+        setSeriesMaps((prev) => {
+          const next = { ...(prev || {}) };
+          for (const r of results) {
+            if (r.status === "fulfilled") {
+              next[r.value.sensorNo] = r.value.map;
+            } else {
+              console.warn("[HUmiGraph] API failed:", r.reason);
+            }
           }
+          return next;
+        });
 
-          return { sensorNo, map: m };
-        })
-      );
-
-      if (cancelled) return;
-
-      setSeriesMaps((prev) => {
-        const next = { ...(prev || {}) };
-        for (const r of results) {
-          if (r.status === "fulfilled") {
-            next[r.value.sensorNo] = r.value.map;
-          } else {
-            console.warn("API failed:", r.reason);
-          }
+        const failedCount = results.filter((r) => r.status === "rejected").length;
+        if (failedCount === results.length) {
+          setErr("All sensor APIs failed. Check URLs / server.");
         }
-        return next;
-      });
 
-      const failedCount = results.filter((r) => r.status === "rejected").length;
-      if (failedCount === results.length) {
-        setErr("All sensor APIs failed. Check URLs / server.");
+        console.log("[HUmiGraph] Fetch finished:", new Date().toISOString());
+      } catch (e) {
+        if (!cancelled) setErr(e?.message || "Failed to fetch sensor data");
+        console.error("[HUmiGraph] Fetch error:", e);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    } catch (e) {
-      if (!cancelled) setErr(e?.message || "Failed to fetch sensor data");
-    } finally {
-      if (!cancelled) setLoading(false);
-    }
-  };
+    };
 
-  fetchAll();
+    fetchAll();
 
-  return () => {
-    cancelled = true;
-  };
-}, [urls]);
-
-
-
-
+    return () => {
+      cancelled = true;
+    };
+  }, [urls]);
 
   // --------------------------------------------
   // Build UNION timeline across sensors (ALL ts)
@@ -223,7 +221,7 @@ useEffect(() => {
       return { timelineTs: [], labels: [], datasets: [] };
     }
 
-    // union timestamps across all sensors
+    // ✅ keep your original logic (1..5 only)
     const allTs = new Map(); // ts -> timeMs
     for (const sn of [1, 2, 3, 4, 5]) {
       const m = seriesMaps?.[sn];
@@ -233,7 +231,6 @@ useEffect(() => {
       }
     }
 
-    // sort by timeMs
     const timelineTs = Array.from(allTs.entries())
       .sort((a, b) => a[1] - b[1])
       .map(([ts]) => ts);
@@ -246,6 +243,11 @@ useEffect(() => {
       3: "rgb(153, 102, 255)",
       4: "rgb(75, 192, 192)",
       5: "rgb(255, 159, 64)",
+      6: "rgb(201, 203, 207)",
+      7: "rgb(255, 205, 86)",
+      8: "rgb(0, 200, 83)",
+      9: "rgb(3, 169, 244)",
+      10: "rgb(156, 39, 176)",
     };
 
     const datasets = [];
@@ -285,24 +287,23 @@ useEffect(() => {
   }, [labels, datasets]);
 
   // --------------------------------------------
-  // Zoom logic (single canvas) using slider
-  //   - 0% => full view
-  //   - 100% => most zoomed-in
-  //   - anchored to the RIGHT (latest time)
+  // ✅ Zoom logic (sticky) using slider
+  //   - save window on slider change
+  //   - re-apply window on new labels (fetch)
   // --------------------------------------------
+
+  // Apply zoom when slider changes (AND save window)
   useEffect(() => {
-    const chart = chartRef.current;
+    const chart = getChart();
     if (!chart) return;
 
     const total = labels.length;
     if (total <= 2) return;
 
     const maxIndex = total - 1;
-
-    // smallest window at max zoom (show at least 12 points or 5%)
     const minWindow = Math.max(12, Math.floor(total * 0.05));
 
-    const t = zoomPercent / 100; // 0..1
+    const t = zoomPercent / 100;
     const windowSize = Math.round(total - t * (total - minWindow));
 
     const minIndex = Math.max(0, maxIndex - windowSize);
@@ -311,8 +312,35 @@ useEffect(() => {
     chart.options.scales.x.min = minIndex;
     chart.options.scales.x.max = maxVisible;
 
-    chart.update("none");
+    // remember window
+    zoomWindowRef.current = { min: minIndex, max: maxVisible, percent: zoomPercent };
+
+    chart.update();
   }, [zoomPercent, labels]);
+
+  // Re-apply saved zoom window whenever new labels arrive
+  useEffect(() => {
+    const chart = getChart();
+    if (!chart) return;
+    if (!labels.length) return;
+
+    const saved = zoomWindowRef.current;
+    if (saved?.min === undefined || saved?.max === undefined) return;
+
+    const total = labels.length;
+    const maxIndex = total - 1;
+
+    const windowSize = Math.max(2, saved.max - saved.min);
+    const newMax = maxIndex;
+    const newMin = Math.max(0, newMax - windowSize);
+
+    chart.options.scales.x.min = newMin;
+    chart.options.scales.x.max = newMax;
+
+    zoomWindowRef.current = { ...saved, min: newMin, max: newMax };
+
+    chart.update();
+  }, [labels]);
 
   const options = useMemo(() => {
     const isDark = theme === "dark";
@@ -330,7 +358,7 @@ useEffect(() => {
       maintainAspectRatio: false,
 
       interaction: {
-       mode: "nearest",
+        mode: "nearest",
         axis: "xy",
         intersect: false,
       },
@@ -397,7 +425,6 @@ useEffect(() => {
     };
   }, [labels, theme]);
 
-
   return (
     <div className={`ec-page ${theme}`}>
       <div className={`ec-card ${theme}`}>
@@ -429,21 +456,13 @@ useEffect(() => {
           )}
 
           {!loading && !err && datasets.length > 0 && (
-            <Line
-              ref={chartRef}
-              data={chartData}
-              options={options}
-            // plugins={[phBandsPlugin]}
-            />
+            <Line ref={chartRef} data={chartData} options={options} />
           )}
         </div>
       </div>
 
       <div className={`graph-dwn-btn-main ${theme}`}>
-        <div
-          className="graph-den-btn"
-          onClick={showNotReady}
-        >
+        <div className="graph-den-btn" onClick={showNotReady}>
           다운로드 (CSV File)
         </div>
 
@@ -457,7 +476,6 @@ useEffect(() => {
           bodyClassName="toast-center-body"
         />
       </div>
-
     </div>
   );
 }

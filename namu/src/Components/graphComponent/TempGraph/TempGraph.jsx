@@ -73,6 +73,12 @@ export default function TempGraph() {
   // ✅ persist lastId across renders
   const lastIdsRef = useRef({});
 
+  // ✅ NEW: remember current zoom window so it won't reset on new data
+  const zoomWindowRef = useRef({ min: undefined, max: undefined, percent: 0 });
+
+  // ✅ helper: get real chart instance
+  const getChart = () => chartRef.current?.chart || chartRef.current;
+
   const urls = useMemo(() => {
     const api = GraphApi();
     return [
@@ -125,13 +131,16 @@ export default function TempGraph() {
               cache: "no-store",
             });
 
-            if (!res.ok) throw new Error(`HTTP ${res.status} for sensor ${sensorNo}`);
+            if (!res.ok)
+              throw new Error(`HTTP ${res.status} for sensor ${sensorNo}`);
 
             const json = await res.json(); // { ok, lastId, count, rows }
-            if (!json?.ok) throw new Error(json?.error || `API error for sensor ${sensorNo}`);
+            if (!json?.ok)
+              throw new Error(json?.error || `API error for sensor ${sensorNo}`);
 
             const rows = Array.isArray(json.rows) ? json.rows : [];
-            const newLastId = typeof json.lastId === "number" ? json.lastId : lastId;
+            const newLastId =
+              typeof json.lastId === "number" ? json.lastId : lastId;
 
             return { sensorNo, rows, newLastId };
           })
@@ -262,9 +271,9 @@ export default function TempGraph() {
 
   const chartData = useMemo(() => ({ labels, datasets }), [labels, datasets]);
 
-  // Zoom logic
+  // ✅ Apply zoom when slider changes (AND save window)
   useEffect(() => {
-    const chart = chartRef.current;
+    const chart = getChart();
     if (!chart) return;
 
     const total = labels.length;
@@ -277,11 +286,41 @@ export default function TempGraph() {
     const windowSize = Math.round(total - t * (total - minWindow));
 
     const minIndex = Math.max(0, maxIndex - windowSize);
-    chart.options.scales.x.min = minIndex;
-    chart.options.scales.x.max = maxIndex;
+    const maxVisible = maxIndex;
 
-    chart.update("none");
+    chart.options.scales.x.min = minIndex;
+    chart.options.scales.x.max = maxVisible;
+
+    // ✅ remember current window so it won't reset after polling
+    zoomWindowRef.current = { min: minIndex, max: maxVisible, percent: zoomPercent };
+
+    chart.update(); // normal update
   }, [zoomPercent, labels]);
+
+  // ✅ Re-apply saved zoom window whenever new labels arrive (polling update)
+  useEffect(() => {
+    const chart = getChart();
+    if (!chart) return;
+    if (!labels.length) return;
+
+    const saved = zoomWindowRef.current;
+    if (saved?.min === undefined || saved?.max === undefined) return;
+
+    const total = labels.length;
+    const maxIndex = total - 1;
+
+    // keep same window size, anchor to latest point
+    const windowSize = Math.max(2, saved.max - saved.min);
+    const newMax = maxIndex;
+    const newMin = Math.max(0, newMax - windowSize);
+
+    chart.options.scales.x.min = newMin;
+    chart.options.scales.x.max = newMax;
+
+    zoomWindowRef.current = { ...saved, min: newMin, max: newMax };
+
+    chart.update();
+  }, [labels]);
 
   const options = useMemo(() => {
     const isDark = theme === "dark";
@@ -315,7 +354,8 @@ export default function TempGraph() {
           borderColor: tooltipBorder,
           borderWidth: 1,
           callbacks: {
-            title: (items) => (items?.length ? labels[items[0].dataIndex] || "" : ""),
+            title: (items) =>
+              items?.length ? labels[items[0].dataIndex] || "" : "",
             label: (ctx) => {
               const v = ctx.raw;
               if (v === null || v === undefined) return `${ctx.dataset.label}: -`;
